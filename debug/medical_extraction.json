@@ -1,0 +1,106 @@
+{
+  "medical_information": {
+    "medications": [
+      {
+        "name": "Paracetamol",
+        "strength": "650 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "twice daily",
+        "specific_schedule": [
+          "morning",
+          "night"
+        ],
+        "timing": "after food",
+        "duration": "5 days",
+        "source_speaker": "Doctor",
+        "source_text": "பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி காலை மற்றும் இரவு சாப்படு பிறகு எடுத்துக்கொள்ளுங்கள் அஞ்சு நாள் தொடர்ந்து எடுத்துக்கோங்க",
+        "source_start": 10.0,
+        "source_end": 17.0
+      },
+      {
+        "name": "Metformin",
+        "strength": "500 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "once daily",
+        "specific_schedule": [
+          "night"
+        ],
+        "timing": "after dinner",
+        "duration": null,
+        "source_speaker": "Doctor",
+        "source_text": "மெட்டாஃபார்மின் ஃபைவ் ஹண்ட்ரட் எம்ஜி டின்னருக்கு பிறகு எடுத்துக்கோங்க",
+        "source_start": 19.0,
+        "source_end": 24.0
+      },
+      {
+        "name": "Vitamin D",
+        "strength": null,
+        "dose": "1 capsule",
+        "route": "oral",
+        "frequency": "once weekly",
+        "specific_schedule": [
+          "night"
+        ],
+        "timing": "night",
+        "duration": null,
+        "source_speaker": "Doctor",
+        "source_text": "நைட்டு விட்டமின் டி கேப்்சூல் வாரத்துக்கு ஒரு முறையாக தான் எடுத்துக்கோங்க",
+        "source_start": 24.0,
+        "source_end": 29.0
+      }
+    ],
+    "tests": [],
+    "instructions": [
+      "நிறைய தண்ணி குடிங்க (Drink plenty of fluids/water)",
+      "நல்லா ரெஸ்ட் எடுங்க (Take adequate rest)"
+    ],
+    "follow_up": {
+      "time": "1 week",
+      "instructions": "ஒரு வாரம் கழித்து திருப்பி வாங்க பார்க்கலாம் (Follow-up review in 1 week)"
+    },
+    "warnings": [],
+    "symptoms_mentioned": [
+      "Fever (மூணு நாளா)",
+      "Headache (predominantly night time)",
+      "Difficulty eating / loss of appetite"
+    ],
+    "uncertain_items": [
+      "Upstream cloud LLM experiencing high demand (HTTP 503/429); extracted via clinical semantic fallback. Physician sign-off required.",
+      "Medication 'Metformin': Explicit duration not stated in transcript.",
+      "Medication 'Vitamin D': Explicit duration not stated in transcript."
+    ],
+    "requires_doctor_review": true
+  },
+  "validation": {
+    "valid": true,
+    "requires_doctor_review": true,
+    "uncertain_items": [
+      "Upstream cloud LLM experiencing high demand (HTTP 503/429); extracted via clinical semantic fallback. Physician sign-off required.",
+      "Medication 'Metformin': Explicit duration not stated in transcript.",
+      "Medication 'Vitamin D': Explicit duration not stated in transcript."
+    ],
+    "errors": []
+  },
+  "doctor_verification": {
+    "status": "APPROVED_BY_DOCTOR",
+    "requires_doctor_review": false,
+    "verified_by": "Dr. Ramanathan",
+    "verification_timestamp": "2026-09-28T17:06:23.685693+00:00",
+    "checklist": {
+      "symptoms_verified": true,
+      "medications_verified": true,
+      "tests_verified": true,
+      "instructions_verified": true,
+      "follow_up_verified": true
+    },
+    "uncertainties_to_resolve": [
+      "Upstream cloud LLM experiencing high demand (HTTP 503/429); extracted via clinical semantic fallback. Physician sign-off required.",
+      "Medication 'Metformin': Explicit duration not stated in transcript.",
+      "Medication 'Vitamin D': Explicit duration not stated in transcript."
+    ],
+    "doctor_notes": "Reviewed and approved consultation transcript and clinical extraction.",
+    "clinical_safety_notice": "AI-extracted clinical records require licensed physician verification prior to patient care plan issuance or electronic prescription generation."
+  }
+}

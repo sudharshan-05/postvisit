@@ -1,0 +1,38 @@
+{
+  "medications": [
+    {
+      "name": "Paracetamol",
+      "strength": "650 mg",
+      "dose": "1 tablet",
+      "route": "oral",
+      "frequency": "twice daily",
+      "specific_schedule": [
+        "morning",
+        "night"
+      ],
+      "timing": "after food",
+      "duration": "5 days",
+      "source_speaker": "Doctor",
+      "source_text": "பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மார்னிங் அண்ட் நை் ஆஃப்டர் ஃபுட் எடுத்துக்கோங்க ஃபைவ் டேஸ் அதை கண்டினியூ பண்ணுங்கள்",
+      "source_start": 9.0,
+      "source_end": 18.0
+    }
+  ],
+  "tests": [],
+  "instructions": [
+    "Drink plenty of water",
+    "Take proper rest"
+  ],
+  "follow_up": {
+    "time": "1 week",
+    "instructions": "Come for follow-up"
+  },
+  "warnings": [],
+  "symptoms_mentioned": [
+    "Fever",
+    "Body pain",
+    "Headache"
+  ],
+  "uncertain_items": [],
+  "requires_doctor_review": true
+}

@@ -1,0 +1,67 @@
+{
+  "status": "completed",
+  "consultation_id": "c8f2dda3-bb80-445f-81b3-a7fb32dd81a4",
+  "media_storage_path": "consultations/c8f2dda3-bb80-445f-81b3-a7fb32dd81a4/original.mp4",
+  "input": {
+    "filename": "test3.mp4",
+    "media_type": "video/mp4",
+    "duration_seconds": 25.28
+  },
+  "transcript": [
+    {
+      "start": 0.97,
+      "end": 10.56,
+      "speaker": "Patient",
+      "text": "டாக்டர் எனக்கு முன்னாடி மெட்டாஃபார்மின் ஃபைவ ஹண்டரட் எம்ஜி எடுத்துக்கிட்டு இருந்தேன் இப்போவும் அதை கன்ண்டினியூ பண்ணட்டான் உங்கள் பழைய ப்ஸ்கிரிப்ஷன் பார்த்துட்டு சொல்கிறேன் இப்போதைக்கி நீங்கள் அதை கன்ட்டினியூ பண்ண வேண்டாம்"
+    },
+    {
+      "start": 11.61,
+      "end": 22.32,
+      "speaker": "Doctor",
+      "text": "ஓகே டாக்டர் இப்போது இப்போது நீங்கள் பேராசட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மட்டும் இரவு சாப்பிட்ட பிறகு எடுத்துக்கோங்க த்ரீ டேஸ் எடுத்துக்கோங்க கன்ட்டினியூஸாக"
+    },
+    {
+      "start": 23.31,
+      "end": 23.97,
+      "speaker": "Patient",
+      "text": "ஆஃப்டர்ஃபு்"
+    }
+  ],
+  "medical_record": {
+    "medications": [
+      {
+        "name": "Paracetamol",
+        "strength": "650 mg",
+        "dose": null,
+        "route": null,
+        "frequency": "once daily",
+        "specific_schedule": [
+          "night"
+        ],
+        "timing": "after food",
+        "duration": "3 days",
+        "source_speaker": "Doctor",
+        "source_text": "இப்போது நீங்கள் பேராசட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மட்டும் இரவு சாப்பிட்ட பிறகு எடுத்துக்கோங்க த்ரீ டேஸ் எடுத்துக்கோங்க",
+        "source_start": 11.0,
+        "source_end": 23.0
+      }
+    ],
+    "tests": [],
+    "instructions": [
+      "Do not continue Metformin for now"
+    ],
+    "follow_up": {
+      "time": null,
+      "instructions": "Doctor will review old prescription"
+    },
+    "warnings": [],
+    "symptoms_mentioned": [],
+    "uncertain_items": [],
+    "requires_doctor_review": true
+  },
+  "validation": {
+    "status": "valid",
+    "errors": [],
+    "warnings": []
+  }
+}

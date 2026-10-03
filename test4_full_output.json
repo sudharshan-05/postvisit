@@ -1,0 +1,131 @@
+{
+  "media_file": "C:\\Users\\Sudharshan\\OneDrive\\Desktop\\POSTVIST\\test4.mp4",
+  "audio_format": "MP4",
+  "audio_duration_sec": 40.26,
+  "processing_time_sec": 6.62,
+  "rtf": 0.16,
+  "speaker_turns": [
+    {
+      "turn_id": 1,
+      "speaker_id": "SPEAKER_00",
+      "speaker": "Patient",
+      "start_sec": 2.35,
+      "end_sec": 7.96,
+      "text": "டாக்டர் எனக்கு ரெண்டு வாரமாக ஸ்டமக் பெயின் இருக்குது சாப்பிட்ட பிறகு ஆசடிட்டி அதிகமாகக்குது சில நேரம் நாசியாகவும் இருக்குது"
+    },
+    {
+      "turn_id": 2,
+      "speaker_id": "SPEAKER_01",
+      "speaker": "Doctor",
+      "start_sec": 8.69,
+      "end_sec": 27.54,
+      "text": "சரி பேண்டடோ பேராசோல் ஃபார்ட்டி எம்ஜி காலையில் எம்டிி ஸ்டோமக் எடுத்துக்கோங்க தேர்ட்டி டேஸ் எடுத்துக்கோங்க போரசிட்டமால் ஃபைவ் ஹண்ட்ரட் எம்ஜி வந்து பெயின் இருக்கும்போது மட்டும் எடுத்துக்கோங்க ஒரு நாளைக்கு மூணு டேப்லெட்ஸ் மேலே வேண்டாம் விட்டமின் டி கேப்சூல் வாரத்துக்கு ஒரு முறை எடுத்துக்கோங்க எட்டு வாரத்துக்கு தொடர்ந்து எடுத்துக்கோங்க"
+    },
+    {
+      "turn_id": 3,
+      "speaker_id": "SPEAKER_01",
+      "speaker": "Doctor",
+      "start_sec": 28.64,
+      "end_sec": 39.42,
+      "text": "இந்த மாத்திரைய எல்லாம் சாப்பாட்டுக்கு முன்னாடியாக பேண்டட போரசால் மட்டும் பிரேக்ஃபாஸ்ட்ு முன்னாடி பேராசிட்டமால் சாப் சாப்பிட்ட பிறகு எடுத்துக்கலாம் விட்டமின் டி லன்ச்சுக்கு பிறகு எடுத்துக்கலாம்"
+    }
+  ],
+  "role_mapping": {
+    "SPEAKER_00": "Patient",
+    "SPEAKER_01": "Doctor"
+  },
+  "speaker_labelled_transcript": "[00:02] Patient: டாக்டர் எனக்கு ரெண்டு வாரமாக ஸ்டமக் பெயின் இருக்குது சாப்பிட்ட பிறகு ஆசடிட்டி அதிகமாகக்குது சில நேரம் நாசியாகவும் இருக்குது\n[00:08] Doctor: சரி பேண்டடோ பேராசோல் ஃபார்ட்டி எம்ஜி காலையில் எம்டிி ஸ்டோமக் எடுத்துக்கோங்க தேர்ட்டி டேஸ் எடுத்துக்கோங்க போரசிட்டமால் ஃபைவ் ஹண்ட்ரட் எம்ஜி வந்து பெயின் இருக்கும்போது மட்டும் எடுத்துக்கோங்க ஒரு நாளைக்கு மூணு டேப்லெட்ஸ் மேலே வேண்டாம் விட்டமின் டி கேப்சூல் வாரத்துக்கு ஒரு முறை எடுத்துக்கோங்க எட்டு வாரத்துக்கு தொடர்ந்து எடுத்துக்கோங்க\n[00:28] Doctor: இந்த மாத்திரைய எல்லாம் சாப்பாட்டுக்கு முன்னாடியாக பேண்டட போரசால் மட்டும் பிரேக்ஃபாஸ்ட்ு முன்னாடி பேராசிட்டமால் சாப் சாப்பிட்ட பிறகு எடுத்துக்கலாம் விட்டமின் டி லன்ச்சுக்கு பிறகு எடுத்துக்கலாம்",
+  "combined_transcript": "டாக்டர் எனக்கு ரெண்டு வாரமாக ஸ்டமக் பெயின் இருக்குது சாப்பிட்ட பிறகு ஆசடிட்டி அதிகமாகக்குது சில நேரம் நாசியாகவும் இருக்குது சரி பேண்டடோ பேராசோல் ஃபார்ட்டி எம்ஜி காலையில் எம்டிி ஸ்டோமக் எடுத்துக்கோங்க தேர்ட்டி டேஸ் எடுத்துக்கோங்க போரசிட்டமால் ஃபைவ் ஹண்ட்ரட் எம்ஜி வந்து பெயின் இருக்கும்போது மட்டும் எடுத்துக்கோங்க ஒரு நாளைக்கு மூணு டேப்லெட்ஸ் மேலே வேண்டாம் விட்டமின் டி கேப்சூல் வாரத்துக்கு ஒரு முறை எடுத்துக்கோங்க எட்டு வாரத்துக்கு தொடர்ந்து எடுத்துக்கோங்க இந்த மாத்திரைய எல்லாம் சாப்பாட்டுக்கு முன்னாடியாக பேண்டட போரசால் மட்டும் பிரேக்ஃபாஸ்ட்ு முன்னாடி பேராசிட்டமால் சாப் சாப்பிட்ட பிறகு எடுத்துக்கலாம் விட்டமின் டி லன்ச்சுக்கு பிறகு எடுத்துக்கலாம்",
+  "medical_information": {
+    "medications": [
+      {
+        "name": "Pantoprazole",
+        "strength": "40 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "once daily",
+        "specific_schedule": [
+          "morning"
+        ],
+        "timing": "empty stomach",
+        "duration": "30 days",
+        "source_speaker": "Doctor",
+        "source_text": "பேண்டடோ பேராசோல் ஃபார்ட்டி எம்ஜி காலையில் எம்டிி ஸ்டோமக் எடுத்துக்கோங்க தேர்ட்டி டேஸ் எடுத்துக்கோங்க",
+        "source_start": 8.0,
+        "source_end": 28.0
+      },
+      {
+        "name": "Paracetamol",
+        "strength": "500 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "as needed",
+        "specific_schedule": null,
+        "timing": "after food",
+        "duration": null,
+        "source_speaker": "Doctor",
+        "source_text": "போரசிட்டமால் ஃபைவ் ஹண்ட்ரட் எம்ஜி வந்து பெயின் இருக்கும்போது மட்டும் எடுத்துக்கோங்க ஒரு நாளைக்கு மூணு டேப்லெட்ஸ் மேலே வேண்டாம்",
+        "source_start": 8.0,
+        "source_end": 28.0
+      },
+      {
+        "name": "Vitamin D",
+        "strength": null,
+        "dose": "1 capsule",
+        "route": "oral",
+        "frequency": "once weekly",
+        "specific_schedule": null,
+        "timing": "after lunch",
+        "duration": "8 weeks",
+        "source_speaker": "Doctor",
+        "source_text": "விட்டமின் டி கேப்சூல் வாரத்துக்கு ஒரு முறை எடுத்துக்கோங்க எட்டு வாரத்துக்கு தொடர்ந்து எடுத்துக்கோங்க",
+        "source_start": 8.0,
+        "source_end": 28.0
+      }
+    ],
+    "tests": [],
+    "instructions": [],
+    "follow_up": {
+      "time": null,
+      "instructions": null
+    },
+    "warnings": [
+      "Do not take more than 3 tablets of Paracetamol per day"
+    ],
+    "symptoms_mentioned": [
+      "Stomach pain",
+      "Acidity",
+      "Nausea"
+    ],
+    "uncertain_items": [
+      "Medication 'Paracetamol': Explicit duration not stated in transcript."
+    ],
+    "requires_doctor_review": true
+  },
+  "validation": {
+    "valid": true,
+    "requires_doctor_review": true,
+    "uncertain_items": [
+      "Medication 'Paracetamol': Explicit duration not stated in transcript."
+    ],
+    "errors": []
+  },
+  "doctor_verification": {
+    "status": "PENDING_DOCTOR_REVIEW",
+    "requires_doctor_review": true,
+    "verified_by": null,
+    "verification_timestamp": null,
+    "checklist": {
+      "symptoms_verified": false,
+      "medications_verified": false,
+      "tests_verified": false,
+      "instructions_verified": false,
+      "follow_up_verified": false
+    },
+    "uncertainties_to_resolve": [
+      "Medication 'Paracetamol': Explicit duration not stated in transcript."
+    ],
+    "doctor_notes": null,
+    "clinical_safety_notice": "AI-extracted clinical records require licensed physician verification prior to patient care plan issuance or electronic prescription generation."
+  }
+}

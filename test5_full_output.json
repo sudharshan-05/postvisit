@@ -1,0 +1,107 @@
+{
+  "media_file": "C:\\Users\\Sudharshan\\OneDrive\\Desktop\\POSTVIST\\test5.mp4",
+  "audio_format": "MP4",
+  "audio_duration_sec": 28.48,
+  "processing_time_sec": 10.5,
+  "rtf": 0.37,
+  "speaker_turns": [
+    {
+      "turn_id": 1,
+      "speaker_id": "SPEAKER_00",
+      "speaker": "Patient",
+      "start_sec": 0.57,
+      "end_sec": 8.38,
+      "text": "டாக்டர் எனக்கு ஒரு த்ரீ டேஸாக ஃபீவர் இருக்குது பாடி பெயினும் இருக்குது எஸ்ட்டே நைட்ட்ில் இருந்து ஹெட்ேக் ரொம்ப அதிகமாக இருக்குது"
+    },
+    {
+      "turn_id": 2,
+      "speaker_id": "SPEAKER_01",
+      "speaker": "Doctor",
+      "start_sec": 9.81,
+      "end_sec": 17.32,
+      "text": "ஓகே கவலைப்பட வேண்டாம் பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மார்னிங் அண்ட் நை் ஆஃப்டர் ஃபுட் எடுத்துக்கோங்க ஃபைவ் டேஸ் அதை கண்டினியூ பண்ணுங்கள்"
+    },
+    {
+      "turn_id": 3,
+      "speaker_id": "SPEAKER_00",
+      "speaker": "Patient",
+      "start_sec": 18.6,
+      "end_sec": 21.07,
+      "text": "மார்னிங் அண்ட் நைட் மட்டும் எடுத்தால் போதுமா டாக்டர்"
+    },
+    {
+      "turn_id": 4,
+      "speaker_id": "SPEAKER_01",
+      "speaker": "Doctor",
+      "start_sec": 22.18,
+      "end_sec": 27.48,
+      "text": "போதும் நிறைய தண்ணி குடிங்க அண்ட் டேக் ப்ராப்பர் ரெஸ்ட்ட் ஒருன் வீக் அப்புறம் ஃபாலோ அப் வாங்க"
+    }
+  ],
+  "role_mapping": {
+    "SPEAKER_00": "Patient",
+    "SPEAKER_01": "Doctor"
+  },
+  "speaker_labelled_transcript": "[00:00] Patient: டாக்டர் எனக்கு ஒரு த்ரீ டேஸாக ஃபீவர் இருக்குது பாடி பெயினும் இருக்குது எஸ்ட்டே நைட்ட்ில் இருந்து ஹெட்ேக் ரொம்ப அதிகமாக இருக்குது\n[00:09] Doctor: ஓகே கவலைப்பட வேண்டாம் பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மார்னிங் அண்ட் நை் ஆஃப்டர் ஃபுட் எடுத்துக்கோங்க ஃபைவ் டேஸ் அதை கண்டினியூ பண்ணுங்கள்\n[00:18] Patient: மார்னிங் அண்ட் நைட் மட்டும் எடுத்தால் போதுமா டாக்டர்\n[00:22] Doctor: போதும் நிறைய தண்ணி குடிங்க அண்ட் டேக் ப்ராப்பர் ரெஸ்ட்ட் ஒருன் வீக் அப்புறம் ஃபாலோ அப் வாங்க",
+  "combined_transcript": "டாக்டர் எனக்கு ஒரு த்ரீ டேஸாக ஃபீவர் இருக்குது பாடி பெயினும் இருக்குது எஸ்ட்டே நைட்ட்ில் இருந்து ஹெட்ேக் ரொம்ப அதிகமாக இருக்குது ஓகே கவலைப்பட வேண்டாம் பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மார்னிங் அண்ட் நை் ஆஃப்டர் ஃபுட் எடுத்துக்கோங்க ஃபைவ் டேஸ் அதை கண்டினியூ பண்ணுங்கள் மார்னிங் அண்ட் நைட் மட்டும் எடுத்தால் போதுமா டாக்டர் போதும் நிறைய தண்ணி குடிங்க அண்ட் டேக் ப்ராப்பர் ரெஸ்ட்ட் ஒருன் வீக் அப்புறம் ஃபாலோ அப் வாங்க",
+  "medical_information": {
+    "medications": [
+      {
+        "name": "Paracetamol",
+        "strength": "650 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "twice daily",
+        "specific_schedule": [
+          "morning",
+          "night"
+        ],
+        "timing": "after food",
+        "duration": "5 days",
+        "source_speaker": "Doctor",
+        "source_text": "பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மார்னிங் அண்ட் நை் ஆஃப்டர் ஃபுட் எடுத்துக்கோங்க ஃபைவ் டேஸ் அதை கண்டினியூ பண்ணுங்கள்",
+        "source_start": 9.0,
+        "source_end": 18.0
+      }
+    ],
+    "tests": [],
+    "instructions": [
+      "Drink plenty of water",
+      "Take proper rest"
+    ],
+    "follow_up": {
+      "time": "1 week",
+      "instructions": "Come for follow-up"
+    },
+    "warnings": [],
+    "symptoms_mentioned": [
+      "Fever",
+      "Body pain",
+      "Headache"
+    ],
+    "uncertain_items": [],
+    "requires_doctor_review": true
+  },
+  "validation": {
+    "valid": true,
+    "requires_doctor_review": true,
+    "uncertain_items": [],
+    "errors": []
+  },
+  "doctor_verification": {
+    "status": "PENDING_DOCTOR_REVIEW",
+    "requires_doctor_review": true,
+    "verified_by": null,
+    "verification_timestamp": null,
+    "checklist": {
+      "symptoms_verified": false,
+      "medications_verified": false,
+      "tests_verified": false,
+      "instructions_verified": false,
+      "follow_up_verified": false
+    },
+    "uncertainties_to_resolve": [],
+    "doctor_notes": null,
+    "clinical_safety_notice": "AI-extracted clinical records require licensed physician verification prior to patient care plan issuance or electronic prescription generation."
+  }
+}

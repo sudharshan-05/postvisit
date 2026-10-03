@@ -1,0 +1,66 @@
+{
+  "medications": [
+    {
+      "name": "Pantoprazole",
+      "strength": "40 mg",
+      "dose": "1 tablet",
+      "route": "oral",
+      "frequency": "once daily",
+      "specific_schedule": [
+        "morning"
+      ],
+      "timing": "empty stomach",
+      "duration": "30 days",
+      "source_speaker": "Doctor",
+      "source_text": "பேண்டடோ பேராசோல் ஃபார்ட்டி எம்ஜி காலையில் எம்டிி ஸ்டோமக் எடுத்துக்கோங்க தேர்ட்டி டேஸ் எடுத்துக்கோங்க",
+      "source_start": 8.0,
+      "source_end": 28.0
+    },
+    {
+      "name": "Paracetamol",
+      "strength": "500 mg",
+      "dose": "1 tablet",
+      "route": "oral",
+      "frequency": "as needed",
+      "specific_schedule": null,
+      "timing": "after food",
+      "duration": null,
+      "source_speaker": "Doctor",
+      "source_text": "போரசிட்டமால் ஃபைவ் ஹண்ட்ரட் எம்ஜி வந்து பெயின் இருக்கும்போது மட்டும் எடுத்துக்கோங்க ஒரு நாளைக்கு மூணு டேப்லெட்ஸ் மேலே வேண்டாம்",
+      "source_start": 8.0,
+      "source_end": 28.0
+    },
+    {
+      "name": "Vitamin D",
+      "strength": null,
+      "dose": "1 capsule",
+      "route": "oral",
+      "frequency": "once weekly",
+      "specific_schedule": null,
+      "timing": "after lunch",
+      "duration": "8 weeks",
+      "source_speaker": "Doctor",
+      "source_text": "விட்டமின் டி கேப்சூல் வாரத்துக்கு ஒரு முறை எடுத்துக்கோங்க எட்டு வாரத்துக்கு தொடர்ந்து எடுத்துக்கோங்க",
+      "source_start": 8.0,
+      "source_end": 28.0
+    }
+  ],
+  "tests": [],
+  "instructions": [],
+  "follow_up": {
+    "time": null,
+    "instructions": null
+  },
+  "warnings": [
+    "Do not take more than 3 tablets of Paracetamol per day"
+  ],
+  "symptoms_mentioned": [
+    "Stomach pain",
+    "Acidity",
+    "Nausea"
+  ],
+  "uncertain_items": [
+    "Medication 'Paracetamol': Explicit duration not stated in transcript."
+  ],
+  "requires_doctor_review": true
+}

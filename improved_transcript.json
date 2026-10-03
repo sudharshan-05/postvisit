@@ -1,0 +1,108 @@
+{
+  "audio_file": "test_two_speaker_tamil.wav",
+  "processing_time_sec": 54.88,
+  "turns": [
+    {
+      "turn_id": 1,
+      "speaker_id": "SPEAKER_00",
+      "speaker": "Patient",
+      "start_sec": 1.32,
+      "end_sec": 9.78,
+      "text": "டாக்டர் எனக்கு மூணு நாளாக ஃபீவர் இருக்குது பாடி பெயினும் இருக்குது நைட் டைமில் ஹெட்ேக் அதிகமாக இருக்குது சாப்பிடவும் கொஞ்சம் கஷ்டமாக இருக்குது"
+    },
+    {
+      "turn_id": 2,
+      "speaker_id": "SPEAKER_01",
+      "speaker": "Doctor",
+      "start_sec": 10.65,
+      "end_sec": 34.45,
+      "text": "சரி கவலைப்பட வேண்டாம் பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி காலை மற்றும் இரவு சாப்படு பிறகு எடுத்துக்கொள்ளுங்கள் அஞ்சு நாள் தொடர்ந்து எடுத்துக்கோங்க மெட்டாஃபார்மின் ஃபைவ் ஹண்ட்ரட் எம்ஜி டின்னருக்கு பிறகு எடுத்துக்கோங்க நைட்டு விட்டமின் டி கேப்்சூல் வாரத்துக்கு ஒரு முறையாக தான் எடுத்துக்கோங்க நிறைய தண்ணி குடிங்க நல்லா ரெஸ்ட் எடுங்க ஒரு வாரம் கழித்து திருப்பி வாங்க பார்க்கலாம்"
+    }
+  ],
+  "speaker_labelled_transcript": "[00:01] Patient: டாக்டர் எனக்கு மூணு நாளாக ஃபீவர் இருக்குது பாடி பெயினும் இருக்குது நைட் டைமில் ஹெட்ேக் அதிகமாக இருக்குது சாப்பிடவும் கொஞ்சம் கஷ்டமாக இருக்குது\n[00:10] Doctor: சரி கவலைப்பட வேண்டாம் பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி காலை மற்றும் இரவு சாப்படு பிறகு எடுத்துக்கொள்ளுங்கள் அஞ்சு நாள் தொடர்ந்து எடுத்துக்கோங்க மெட்டாஃபார்மின் ஃபைவ் ஹண்ட்ரட் எம்ஜி டின்னருக்கு பிறகு எடுத்துக்கோங்க நைட்டு விட்டமின் டி கேப்்சூல் வாரத்துக்கு ஒரு முறையாக தான் எடுத்துக்கோங்க நிறைய தண்ணி குடிங்க நல்லா ரெஸ்ட் எடுங்க ஒரு வாரம் கழித்து திருப்பி வாங்க பார்க்கலாம்",
+  "combined_transcript": "டாக்டர் எனக்கு மூணு நாளாக ஃபீவர் இருக்குது பாடி பெயினும் இருக்குது நைட் டைமில் ஹெட்ேக் அதிகமாக இருக்குது சாப்பிடவும் கொஞ்சம் கஷ்டமாக இருக்குது சரி கவலைப்பட வேண்டாம் பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி காலை மற்றும் இரவு சாப்படு பிறகு எடுத்துக்கொள்ளுங்கள் அஞ்சு நாள் தொடர்ந்து எடுத்துக்கோங்க மெட்டாஃபார்மின் ஃபைவ் ஹண்ட்ரட் எம்ஜி டின்னருக்கு பிறகு எடுத்துக்கோங்க நைட்டு விட்டமின் டி கேப்்சூல் வாரத்துக்கு ஒரு முறையாக தான் எடுத்துக்கோங்க நிறைய தண்ணி குடிங்க நல்லா ரெஸ்ட் எடுங்க ஒரு வாரம் கழித்து திருப்பி வாங்க பார்க்கலாம்",
+  "medical_information": {
+    "medications": [
+      {
+        "name": "Paracetamol",
+        "strength": "650 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "twice daily",
+        "specific_schedule": [
+          "morning",
+          "night"
+        ],
+        "timing": "after food",
+        "duration": "5 days",
+        "source_speaker": "Doctor",
+        "source_text": "பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி காலை மற்றும் இரவு சாப்படு பிறகு எடுத்துக்கொள்ளுங்கள் அஞ்சு நாள் தொடர்ந்து எடுத்துக்கோங்க",
+        "source_start": 10.0,
+        "source_end": 17.0
+      },
+      {
+        "name": "Metformin",
+        "strength": "500 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "once daily",
+        "specific_schedule": [
+          "night"
+        ],
+        "timing": "after dinner",
+        "duration": null,
+        "source_speaker": "Doctor",
+        "source_text": "மெட்டாஃபார்மின் ஃபைவ் ஹண்ட்ரட் எம்ஜி டின்னருக்கு பிறகு எடுத்துக்கோங்க",
+        "source_start": 19.0,
+        "source_end": 24.0
+      },
+      {
+        "name": "Vitamin D",
+        "strength": null,
+        "dose": "1 capsule",
+        "route": "oral",
+        "frequency": "once weekly",
+        "specific_schedule": [
+          "night"
+        ],
+        "timing": "night",
+        "duration": null,
+        "source_speaker": "Doctor",
+        "source_text": "நைட்டு விட்டமின் டி கேப்்சூல் வாரத்துக்கு ஒரு முறையாக தான் எடுத்துக்கோங்க",
+        "source_start": 24.0,
+        "source_end": 29.0
+      }
+    ],
+    "tests": [],
+    "instructions": [
+      "நிறைய தண்ணி குடிங்க (Drink plenty of fluids/water)",
+      "நல்லா ரெஸ்ட் எடுங்க (Take adequate rest)"
+    ],
+    "follow_up": {
+      "time": "1 week",
+      "instructions": "ஒரு வாரம் கழித்து திருப்பி வாங்க பார்க்கலாம் (Follow-up review in 1 week)"
+    },
+    "warnings": [],
+    "symptoms_mentioned": [
+      "Fever (மூணு நாளா)",
+      "Headache (predominantly night time)",
+      "Difficulty eating / loss of appetite"
+    ],
+    "uncertain_items": [
+      "Upstream cloud LLM experiencing high demand (HTTP 503/429); extracted via clinical semantic fallback. Physician sign-off required.",
+      "Medication 'Metformin': Explicit duration not stated in transcript.",
+      "Medication 'Vitamin D': Explicit duration not stated in transcript."
+    ],
+    "requires_doctor_review": true
+  },
+  "validation": {
+    "valid": true,
+    "requires_doctor_review": true,
+    "uncertain_items": [
+      "Upstream cloud LLM experiencing high demand (HTTP 503/429); extracted via clinical semantic fallback. Physician sign-off required.",
+      "Medication 'Metformin': Explicit duration not stated in transcript.",
+      "Medication 'Vitamin D': Explicit duration not stated in transcript."
+    ],
+    "errors": []
+  }
+}

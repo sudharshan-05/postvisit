@@ -1,0 +1,32 @@
+{
+  "medications": [
+    {
+      "name": "Paracetamol",
+      "strength": "650 mg",
+      "dose": null,
+      "route": null,
+      "frequency": "once daily",
+      "specific_schedule": [
+        "night"
+      ],
+      "timing": "after food",
+      "duration": "3 days",
+      "source_speaker": "Doctor",
+      "source_text": "இப்போது நீங்கள் பேராசட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மட்டும் இரவு சாப்பிட்ட பிறகு எடுத்துக்கோங்க த்ரீ டேஸ் எடுத்துக்கோங்க",
+      "source_start": 11.0,
+      "source_end": 23.0
+    }
+  ],
+  "tests": [],
+  "instructions": [
+    "Do not continue Metformin for now"
+  ],
+  "follow_up": {
+    "time": null,
+    "instructions": "Doctor will review old prescription"
+  },
+  "warnings": [],
+  "symptoms_mentioned": [],
+  "uncertain_items": [],
+  "requires_doctor_review": true
+}

@@ -1,0 +1,101 @@
+{
+  "status": "completed",
+  "consultation_id": "4da4cff5-12f8-4e29-aaa8-0be879ad8b1e",
+  "media_storage_path": "consultations/4da4cff5-12f8-4e29-aaa8-0be879ad8b1e/original.mp4",
+  "input": {
+    "filename": "test4.mp4",
+    "media_type": "video/mp4",
+    "duration_seconds": 40.26
+  },
+  "transcript": [
+    {
+      "start": 2.35,
+      "end": 7.96,
+      "speaker": "Patient",
+      "text": "டாக்டர் எனக்கு ரெண்டு வாரமாக ஸ்டமக் பெயின் இருக்குது சாப்பிட்ட பிறகு ஆசடிட்டி அதிகமாகக்குது சில நேரம் நாசியாகவும் இருக்குது"
+    },
+    {
+      "start": 8.69,
+      "end": 27.54,
+      "speaker": "Doctor",
+      "text": "சரி பேண்டடோ பேராசோல் ஃபார்ட்டி எம்ஜி காலையில் எம்டிி ஸ்டோமக் எடுத்துக்கோங்க தேர்ட்டி டேஸ் எடுத்துக்கோங்க போரசிட்டமால் ஃபைவ் ஹண்ட்ரட் எம்ஜி வந்து பெயின் இருக்கும்போது மட்டும் எடுத்துக்கோங்க ஒரு நாளைக்கு மூணு டேப்லெட்ஸ் மேலே வேண்டாம் விட்டமின் டி கேப்சூல் வாரத்துக்கு ஒரு முறை எடுத்துக்கோங்க எட்டு வாரத்துக்கு தொடர்ந்து எடுத்துக்கோங்க"
+    },
+    {
+      "start": 28.64,
+      "end": 39.42,
+      "speaker": "Doctor",
+      "text": "இந்த மாத்திரைய எல்லாம் சாப்பாட்டுக்கு முன்னாடியாக பேண்டட போரசால் மட்டும் பிரேக்ஃபாஸ்ட்ு முன்னாடி பேராசிட்டமால் சாப் சாப்பிட்ட பிறகு எடுத்துக்கலாம் விட்டமின் டி லன்ச்சுக்கு பிறகு எடுத்துக்கலாம்"
+    }
+  ],
+  "medical_record": {
+    "medications": [
+      {
+        "name": "Pantoprazole",
+        "strength": "40 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "once daily",
+        "specific_schedule": [
+          "morning"
+        ],
+        "timing": "empty stomach",
+        "duration": "30 days",
+        "source_speaker": "Doctor",
+        "source_text": "பேண்டடோ பேராசோல் ஃபார்ட்டி எம்ஜி காலையில் எம்டிி ஸ்டோமக் எடுத்துக்கோங்க தேர்ட்டி டேஸ் எடுத்துக்கோங்க",
+        "source_start": 8.0,
+        "source_end": 28.0
+      },
+      {
+        "name": "Paracetamol",
+        "strength": "500 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "as needed",
+        "specific_schedule": null,
+        "timing": "after food",
+        "duration": null,
+        "source_speaker": "Doctor",
+        "source_text": "போரசிட்டமால் ஃபைவ் ஹண்ட்ரட் எம்ஜி வந்து பெயின் இருக்கும்போது மட்டும் எடுத்துக்கோங்க ஒரு நாளைக்கு மூணு டேப்லெட்ஸ் மேலே வேண்டாம்",
+        "source_start": 8.0,
+        "source_end": 28.0
+      },
+      {
+        "name": "Vitamin D",
+        "strength": null,
+        "dose": "1 capsule",
+        "route": "oral",
+        "frequency": "once weekly",
+        "specific_schedule": null,
+        "timing": "after lunch",
+        "duration": "8 weeks",
+        "source_speaker": "Doctor",
+        "source_text": "விட்டமின் டி கேப்சூல் வாரத்துக்கு ஒரு முறை எடுத்துக்கோங்க எட்டு வாரத்துக்கு தொடர்ந்து எடுத்துக்கோங்க",
+        "source_start": 8.0,
+        "source_end": 28.0
+      }
+    ],
+    "tests": [],
+    "instructions": [],
+    "follow_up": {
+      "time": null,
+      "instructions": null
+    },
+    "warnings": [
+      "Do not take more than 3 tablets of Paracetamol per day"
+    ],
+    "symptoms_mentioned": [
+      "Stomach pain",
+      "Acidity",
+      "Nausea"
+    ],
+    "uncertain_items": [
+      "Medication 'Paracetamol': Explicit duration not stated in transcript."
+    ],
+    "requires_doctor_review": true
+  },
+  "validation": {
+    "status": "valid",
+    "errors": [],
+    "warnings": []
+  }
+}

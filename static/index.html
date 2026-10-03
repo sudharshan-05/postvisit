@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostVisit AI — Clinical Consultation & Patient Summary System</title>
+    <meta name="description" content="AI-assisted multilingual medical consultation system for Indian healthcare with ICMR/MoHFW guideline cross-referencing and physician review sign-off.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+</head>
+<body>
+
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="brand-group">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="brand-title">
+                        PostVisit <span class="brand-badge">AI</span>
+                    </div>
+                    <div class="brand-sub">Clinical Decision Support & Multilingual Patient Care (India)</div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="nav-links">
+                <button class="nav-link active" id="nav-doctor-btn" onclick="PostVisitApp.switchView('doctor')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Doctor Portal
+                </button>
+                <button class="nav-link" id="nav-patient-btn" onclick="PostVisitApp.switchView('patient')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Patient Portal
+                </button>
+                <button class="nav-link" id="nav-guidelines-btn" onclick="PostVisitApp.openGuidelinesModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    Clinical Guidelines (ICMR/MoHFW)
+                </button>
+            </nav>
+
+            <!-- User Scope & Actions -->
+            <div class="header-actions">
+                <!-- Role Switcher -->
+                <div class="role-selector-pill">
+                    <span class="role-indicator"></span>
+                    <label for="role-select-input" class="sr-only" style="display:none;">Active Role</label>
+                    <select id="role-select-input" onchange="PostVisitApp.switchRole(this.value)">
+                        <option value="doctor">Role: Doctor (Dr. Rajesh Sharma, MD)</option>
+                        <option value="patient">Role: Patient (Ananya Patel)</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" onclick="PostVisitApp.openUploadModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    New Consultation
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-container">
+
+        <!-- Banner Alert for Guideline Safety Foundation -->
+        <section class="safety-banner" aria-label="Clinical Decision Support Notice">
+            <div class="safety-banner-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="safety-banner-text">
+                <strong>Physician-Gated Clinical Decision Support:</strong>
+                All medical guideline cross-references (ICMR 2022 / MoHFW 2021) and patient summaries require verified doctor review and sign-off. The AI does not autonomously diagnose or modify prescriptions. Unapproved summaries remain strictly blocked from patient access.
+            </div>
+        </section>
+
+        <!-- KPI Metrics Grid -->
+        <section class="metrics-grid" aria-label="System Metrics">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Total Consultations</span>
+                    <span class="metric-icon">📁</span>
+                </div>
+                <div class="metric-value" id="kpi-total">0</div>
+                <div class="metric-sub">Recorded across clinics</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Pending Doctor Review</span>
+                    <span class="metric-icon">⏳</span>
+                </div>
+                <div class="metric-value highlight-warning" id="kpi-pending">0</div>
+                <div class="metric-sub">Awaiting physician approval</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Approved & Released</span>
+                    <span class="metric-icon">✅</span>
+                </div>
+                <div class="metric-value highlight-success" id="kpi-approved">0</div>
+                <div class="metric-sub">Accessible by patients</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Guideline Cross-Refs</span>
+                    <span class="metric-icon">🩺</span>
+                </div>
+                <div class="metric-value highlight-cyan" id="kpi-guidelines">4 Sources</div>
+                <div class="metric-sub">ICMR & MoHFW Active</div>
+            </div>
+        </section>
+
+        <!-- VIEW 1: DOCTOR DASHBOARD (Stage 5B) -->
+        <section id="doctor-view" class="view-panel active" aria-label="Doctor Dashboard">
+            <div class="panel-header" style="flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 class="panel-title">Doctor Consultation Dashboard</h1>
+                    <p class="panel-desc">Review multilingual transcripts, clinical extractions, lab reports, ICMR guideline cross-references, and sign off patient summaries.</p>
+                </div>
+                <div class="filter-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                    <div style="position: relative;">
+                        <input type="text" id="doctor-patient-search" class="form-input" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; width: 220px;" placeholder="🔍 Search patient ID/name..." oninput="PostVisitApp.onDoctorSearchInput(this.value)">
+                    </div>
+                    <button class="filter-chip active" id="chip-filter-all" onclick="PostVisitApp.filterDoctorList('all', this)">All</button>
+                    <button class="filter-chip" id="chip-filter-pending" onclick="PostVisitApp.filterDoctorList('pending_review', this)">⏳ Pending Review</button>
+                    <button class="filter-chip" id="chip-filter-attention" onclick="PostVisitApp.filterDoctorList('needs_attention', this)">⚠️ Needs Attention</button>
+                    <button class="filter-chip" id="chip-filter-completed" onclick="PostVisitApp.filterDoctorList('completed', this)">✅ Completed</button>
+                    <button class="filter-chip" id="chip-filter-recent" onclick="PostVisitApp.filterDoctorList('recent', this)">🕒 Recent</button>
+                    <button class="btn btn-secondary" onclick="PostVisitApp.refreshDoctorDashboard()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Doctor Needs Review Notification Banner (Shown when items require attention) -->
+            <div id="doctor-attention-banner" style="display:none; background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning); padding: 0.75rem 1.25rem; border-radius: 4px; margin-bottom: 1.25rem; color: #fcd34d;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong>⚠️ Consultations Requiring Immediate Physician Review:</strong>
+                        <span id="doctor-attention-count">0 items flagged for safety warnings, guideline discrepancies, or unverified lab reports.</span>
+                    </div>
+                    <button class="btn btn-sm btn-secondary" onclick="PostVisitApp.filterDoctorList('needs_attention', document.getElementById('chip-filter-attention'))">
+                        Filter Flagged Items
+                    </button>
+                </div>
+            </div>
+
+            <!-- Consultations Table (Unified 6 Statuses) -->
+            <div class="table-container">
+                <table class="data-table" id="doctor-consultations-table">
+                    <thead>
+                        <tr>
+                            <th>Patient Identifier</th>
+                            <th>Consultation Date</th>
+                            <th>Unified Status</th>
+                            <th>Processing Stage</th>
+                            <th>Summary Status</th>
+                            <th>Guideline Review</th>
+                            <th>Lab Reports</th>
+                            <th>Last Updated</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="doctor-consultations-tbody">
+                        <tr>
+                            <td colspan="9" class="empty-state">
+                                <div class="spinner"></div>
+                                <p>Loading doctor consultation records...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VIEW 2: PATIENT DASHBOARD (Stage 5A) -->
+        <section id="patient-view" class="view-panel" style="display:none;" aria-label="Patient Health Portal">
+            
+            <!-- Patient Profile & Meta Banner -->
+            <div class="patient-profile-header">
+                <div class="patient-info-left">
+                    <div class="patient-avatar-large">👤</div>
+                    <div>
+                        <div class="patient-name-title">
+                            <span id="patient-display-name">Ananya Patel</span>
+                            <span class="pill-tag pill-tag-blue" id="patient-id-badge">ID: PT-89241</span>
+                            <span class="pill-tag pill-tag-purple">Blood Group: B+</span>
+                        </div>
+                        <div class="patient-tags-row">
+                            <span class="pill-tag pill-tag-red">⚠️ Allergy: Penicillin</span>
+                            <span class="pill-tag pill-tag-amber">Condition: Type 2 Diabetes</span>
+                            <span class="pill-tag pill-tag-green">Condition: Essential Hypertension</span>
+                            <span class="pill-tag pill-tag-blue">Age: 42 • Female</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="patient-info-right" style="display: flex; gap: 0.75rem; align-items: center;">
+                    <div class="role-selector-pill">
+                        <label for="patient-lang-select" style="font-size:0.8rem; color:var(--text-muted); margin-right:4px;">Language:</label>
+                        <select id="patient-lang-select" onchange="PostVisitApp.switchPatientLanguage(this.value)">
+                            <option value="en">English (Clinical)</option>
+                            <option value="ta">தமிழ் (Tamil Summary)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-secondary" onclick="PostVisitApp.refreshPatientDashboard()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="PostVisitApp.openAiAssistant('Explain my overall health overview and doctor recommendations')">
+                        ✨ Ask AI Assistant
+                    </button>
+                </div>
+            </div>
+
+            <!-- Patient Dashboard Sub-Navigation Tabs -->
+            <nav class="patient-subnav" aria-label="Patient Portal Navigation">
+                <button class="patient-tab-btn active" id="ptab-overview-btn" onclick="PostVisitApp.switchPatientTab('overview')">
+                    📊 Overview
+                </button>
+                <button class="patient-tab-btn" id="ptab-myhealth-btn" onclick="PostVisitApp.switchPatientTab('myhealth')">
+                    🩺 My Health & Recovery Plan
+                </button>
+                <button class="patient-tab-btn" id="ptab-history-btn" onclick="PostVisitApp.switchPatientTab('history')">
+                    📁 Visit History
+                </button>
+                <button class="patient-tab-btn" id="ptab-labs-btn" onclick="PostVisitApp.switchPatientTab('labs')">
+                    🧪 Lab Reports
+                </button>
+                <button class="patient-tab-btn" id="ptab-ai-btn" onclick="PostVisitApp.switchPatientTab('ai')">
+                    🤖 AI Assistant & Voice
+                </button>
+                <button class="patient-tab-btn" id="ptab-profile-btn" onclick="PostVisitApp.switchPatientTab('profile')">
+                    👤 My Profile
+                </button>
+            </nav>
+
+            <!-- SUB-PANEL 1: OVERVIEW -->
+            <div id="patient-subpanel-overview" class="patient-subpanel">
+                
+                <!-- Quick KPI Summary Strip -->
+                <div class="metrics-grid" style="margin-bottom: 1.5rem;">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-label">Last Consultation</span>
+                            <span class="metric-icon">📅</span>
+                        </div>
+                        <div class="metric-value highlight-cyan" id="pt-kpi-last-date">-</div>
+                        <div class="metric-sub" id="pt-kpi-last-doc">Attending Physician</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-label">Doctor Review Gate</span>
+                            <span class="metric-icon">🛡️</span>
+                        </div>
+                        <div class="metric-value highlight-success" id="pt-kpi-approval-status">VERIFIED</div>
+                        <div class="metric-sub" id="pt-kpi-approval-sub">Approved summary available</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-label">Upcoming Follow-Up</span>
+                            <span class="metric-icon">🔔</span>
+                        </div>
+                        <div class="metric-value highlight-warning" id="pt-kpi-followup-date">None Recorded</div>
+                        <div class="metric-sub">Strictly from approved record</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-label">Active Prescriptions</span>
+                            <span class="metric-icon">💊</span>
+                        </div>
+                        <div class="metric-value highlight-purple" id="pt-kpi-meds-count">0</div>
+                        <div class="metric-sub">Doctor-approved medications</div>
+                    </div>
+                </div>
+
+                <!-- Last Visit - Quick Summary (14 Clinical Sections, Doctor Approved Gated) -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="card-icon">📋</span>
+                            Last Visit — Doctor-Approved Clinical Summary
+                        </div>
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            <span class="badge badge-approved" id="pt-last-visit-badge">Approved by Physician</span>
+                            <button class="btn-ask-ai" onclick="PostVisitApp.openAiAssistant('Explain my last consultation in simple terms')">
+                                ✨ Explain Visit with AI
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="pt-last-visit-sections" class="clinical-sections-grid">
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="spinner"></div>
+                            <p>Loading approved consultation summary...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dated Health Trends (Strictly genuine measurements, never fabricated) -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="card-icon">📈</span>
+                            Dated Health Trends & Vitals Trajectory
+                        </div>
+                        <div>
+                            <button class="btn-ask-ai" onclick="PostVisitApp.openAiAssistant('Explain my blood pressure and glucose trends')">
+                                ✨ Ask AI About Trends
+                            </button>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        Graphs strictly reflect dated clinic measurements and verified laboratory investigations. No values are interpolated or artificially generated.
+                    </p>
+                    <div class="trends-container" id="pt-trends-container">
+                        <!-- Populated dynamically via /api/v1/patient/overview -->
+                    </div>
+                </div>
+
+                <!-- Two-Column Grid: Doctor-Approved Medications & Recent Lab Reports -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
+                    
+                    <!-- Prescribed Medications Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span class="card-icon">💊</span>
+                                Prescribed Medications & Instructions
+                            </div>
+                            <button class="btn-ask-ai" onclick="PostVisitApp.openAiAssistant('Explain my medication timing and food instructions')">
+                                ✨ Explain Meds
+                            </button>
+                        </div>
+                        <div id="pt-medications-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Recent Lab Reports Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span class="card-icon">🧪</span>
+                                Recent Lab Reports & Vitals
+                            </div>
+                            <button class="btn btn-outline" style="font-size:0.78rem; padding:0.35rem 0.7rem;" onclick="PostVisitApp.switchPatientTab('labs')">
+                                View All Reports →
+                            </button>
+                        </div>
+                        <div id="pt-recent-labs-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- SUB-PANEL 2: MY HEALTH & RECOVERY PLAN -->
+            <div id="patient-subpanel-myhealth" class="patient-subpanel" style="display:none;">
+                <div class="card recovery-plan-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">
+                                <span class="card-icon">✅</span>
+                                Structured Recovery & Daily Care Plan
+                            </div>
+                            <div style="font-size:0.82rem; color:var(--text-muted); margin-top:0.25rem;">
+                                Personalized checklist based strictly on doctor-approved instructions. Checking items tracks personal completion and does not alter the medical record.
+                            </div>
+                        </div>
+                        <button class="btn-ask-ai" onclick="PostVisitApp.openAiAssistant('Explain my recovery plan checklist and priority self-care instructions')">
+                            ✨ Ask AI About Recovery
+                        </button>
+                    </div>
+
+                    <!-- Recovery Plan Checklist Container -->
+                    <div id="pt-recovery-checklist-container">
+                        <!-- Populated dynamically via /api/v1/patient/recovery-plan -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-PANEL 3: VISIT HISTORY -->
+            <div id="patient-subpanel-history" class="patient-subpanel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="card-icon">📁</span>
+                            Chronological Consultation History
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-secondary" onclick="PostVisitApp.loadPatientHistory()">
+                                ↻ Refresh History
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table" id="pt-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Attending Doctor</th>
+                                    <th>Reason for Visit</th>
+                                    <th>Documented Symptoms</th>
+                                    <th>Doctor Review Status</th>
+                                    <th>Approved Summary</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pt-history-tbody">
+                                <!-- Populated dynamically via /api/v1/patient/history -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-PANEL 4: LAB REPORTS (Upload & Manual Entry) -->
+            <div id="patient-subpanel-labs" class="patient-subpanel" style="display:none;">
+                <div class="card">
+                    <div class="lab-reports-header">
+                        <div>
+                            <div class="card-title">
+                                <span class="card-icon">🧪</span>
+                                Patient Medical & Laboratory Reports
+                            </div>
+                            <p style="font-size:0.83rem; color:var(--text-muted); margin-top:0.25rem;">
+                                Upload medical lab documents or enter test summaries. Patient-entered summaries are clearly distinguished from doctor-verified clinical documents.
+                            </p>
+                        </div>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            <button class="btn btn-secondary" onclick="PostVisitApp.openLabManualModal()">
+                                ✍️ Enter Manual Summary
+                            </button>
+                            <button class="btn btn-primary" onclick="PostVisitApp.openLabUploadModal()">
+                                📤 Upload Lab Report (PDF / Image)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="lab-cards-grid" id="pt-labs-grid">
+                        <!-- Populated dynamically via /api/v1/patient/lab-reports -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-PANEL 5: AI ASSISTANT & CUSTOM VOICE RECORDING -->
+            <div id="patient-subpanel-ai" class="patient-subpanel" style="display:none;">
+                <div class="card" style="height: 680px; display: flex; flex-direction: column;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="card-icon">🤖</span>
+                            PostVisit AI Assistant — "Ask About Your Visit"
+                        </div>
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            <span class="pill-tag pill-tag-purple">Grounded in Approved Records</span>
+                            <span class="pill-tag pill-tag-blue">English & தமிழ் Support</span>
+                        </div>
+                    </div>
+
+                    <!-- Safety Banner Inside Chat -->
+                    <div style="background: rgba(14, 165, 233, 0.08); border-left: 3px solid var(--primary); padding: 0.65rem 1rem; font-size: 0.8rem; color: #7dd3fc; margin-bottom: 0.5rem;">
+                        ℹ️ <strong>Clinical Safety Notice:</strong> This AI assistant provides informational explanations of your doctor's documented instructions and lab results. It does not replace your physician or prescribe medications. For emergencies, dial 108/112 immediately.
+                    </div>
+
+                    <!-- Voice Recording Banner (When active) -->
+                    <div id="pt-voice-recording-banner" class="voice-recording-banner" style="display:none;">
+                        <div style="display:flex; align-items:center; gap:0.75rem;">
+                            <div class="pulse-dot" style="width:12px; height:12px; border-radius:50%; background:#ef4444; animation:pulse-red 1s infinite;"></div>
+                            <span style="font-weight:700; color:#f87171;">Recording Voice Note...</span>
+                            <span class="voice-timer" id="pt-voice-timer">00:00</span>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-sm btn-secondary" onclick="PostVisitApp.cancelVoiceRecording()">
+                                ✕ Discard
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="PostVisitApp.stopVoiceRecording()">
+                                ⏹️ Stop & Transcribe
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Voice Transcript Review Card (After transcription, before sending) -->
+                    <div id="pt-voice-review-box" class="voice-transcript-review-box" style="display:none;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                            <strong style="color:var(--info); font-size:0.88rem;">🎙️ Transcribed Voice Note (Draft)</strong>
+                            <span class="pill-tag pill-tag-amber">Patient Provided Draft</span>
+                        </div>
+                        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.5rem;">
+                            Review and edit your transcribed speech below. You can send this directly to the AI Assistant or save it as a personal inquiry.
+                        </p>
+                        <textarea id="pt-voice-transcript-text" class="form-textarea" style="height:70px; margin-bottom:0.5rem;" placeholder="Transcribed text appears here..."></textarea>
+                        <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+                            <button class="btn btn-sm btn-secondary" onclick="PostVisitApp.discardVoiceDraft()">Discard</button>
+                            <button class="btn btn-sm btn-primary" onclick="PostVisitApp.sendVoiceDraftToChat()">Send to AI Assistant →</button>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages Stream -->
+                    <div class="ai-messages-area" id="pt-ai-messages-container">
+                        <!-- Welcome message -->
+                        <div class="ai-msg ai-msg-assistant">
+                            <strong>Hello Ananya! 👋</strong><br>
+                            I am your PostVisit AI health assistant. I can explain your doctor's findings, clarify your medication instructions, help you understand your lab test results, or translate your summary into Tamil.<br>
+                            <em>How can I help you understand your visit today?</em>
+                            <div class="ai-disclaimer-note">
+                                Grounded in doctor-approved consultation record for Ananya Patel (PT-89241).
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contextual Quick Prompt Chips -->
+                    <div class="ai-quick-prompts">
+                        <button class="prompt-chip" onclick="PostVisitApp.sendQuickPrompt('Explain my last visit in simple Tamil')">
+                            🇮🇳 Explain in Tamil (தமிழ்)
+                        </button>
+                        <button class="prompt-chip" onclick="PostVisitApp.sendQuickPrompt('Explain my blood pressure readings and trends')">
+                            🩺 Explain Blood Pressure Trends
+                        </button>
+                        <button class="prompt-chip" onclick="PostVisitApp.sendQuickPrompt('What does after food mean for my medications?')">
+                            💊 Medication Timing & Instructions
+                        </button>
+                        <button class="prompt-chip" onclick="PostVisitApp.sendQuickPrompt('What does my HbA1c lab result mean?')">
+                            🧪 Explain HbA1c Lab Report
+                        </button>
+                    </div>
+
+                    <!-- Chat Input Bar with Custom Microphone Button -->
+                    <div class="ai-input-bar">
+                        <button class="btn-mic-record" id="pt-mic-btn" title="Record Voice Question (Tamil/English)" onclick="PostVisitApp.toggleVoiceRecording()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </button>
+                        <input type="text" id="pt-ai-input-text" class="ai-input-field" placeholder="Ask a question about your visit, medications, or lab reports..." onkeydown="if(event.key==='Enter') PostVisitApp.sendAiChatMessage()">
+                        <button class="btn btn-primary" onclick="PostVisitApp.sendAiChatMessage()">
+                            Send →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-PANEL 6: MY PROFILE -->
+            <div id="patient-subpanel-profile" class="patient-subpanel" style="display:none;">
+                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="card-icon">👤</span>
+                            Patient Medical Profile & Preferences
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Full Name</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:#fff;" id="profile-name">Ananya Patel</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Patient ID</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--primary);" id="profile-pid">PT-89241</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Age & Gender</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:#fff;" id="profile-demographics">42 Yrs • Female</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Blood Group</div>
+                            <div style="font-size:1.1rem; font-weight:700; color:var(--accent-purple);" id="profile-blood">B+</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Phone Number</div>
+                            <div style="font-size:1.0rem; font-weight:600; color:#fff;" id="profile-phone">+91 98401 23456</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Email</div>
+                            <div style="font-size:1.0rem; font-weight:600; color:#fff;" id="profile-email">ananya.patel@example.com</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="font-size:0.95rem; margin-bottom:0.5rem; color:#f87171;">⚠️ Documented Allergies</h4>
+                        <div class="patient-tags-row" id="profile-allergies-list">
+                            <span class="pill-tag pill-tag-red">Penicillin (Severe)</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="font-size:0.95rem; margin-bottom:0.5rem; color:var(--primary);">🩺 Chronic Conditions</h4>
+                        <div class="patient-tags-row" id="profile-conditions-list">
+                            <span class="pill-tag pill-tag-amber">Type 2 Diabetes Mellitus</span>
+                            <span class="pill-tag pill-tag-green">Essential Hypertension</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- VIEW 3: REAL-TIME PROCESSING UI (Inspired by Reference Screenshot) -->
+        <section id="processing-view" class="view-panel" style="display:none;" aria-label="Consultation Processing Screen">
+            <div class="processing-container">
+                
+                <!-- Breadcrumbs & Meta -->
+                <div class="processing-nav">
+                    <button class="btn btn-outline" onclick="PostVisitApp.returnFromProcessing()">
+                        ← Back to Consultations
+                    </button>
+                    <div class="processing-meta-badge" id="proc-consultation-id-badge">
+                        Consultation ID: Loading...
+                    </div>
+                </div>
+
+                <!-- Animated Radar Pulse Core -->
+                <div class="radar-container">
+                    <div class="radar-ring ring-1"></div>
+                    <div class="radar-ring ring-2"></div>
+                    <div class="radar-ring ring-3"></div>
+                    <div class="radar-core">
+                        <div class="core-icon">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Header & Status Subtitles -->
+                <div class="processing-headings">
+                    <h1 class="proc-title" id="proc-main-heading">Analyzing your visit...</h1>
+                    <p class="proc-subtitle" id="proc-sub-heading">Preparing your summary & cross-referencing clinical guidelines...</p>
+                </div>
+
+                <!-- Authoritative Progress Bar -->
+                <div class="progress-wrapper">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="proc-progress-fill" style="width: 15%;"></div>
+                    </div>
+                    <div class="progress-bar-meta">
+                        <span id="proc-percent-text">15% Complete</span>
+                        <span id="proc-elapsed-time">Elapsed: 00:00</span>
+                    </div>
+                </div>
+
+                <!-- Real-time Processing Steps (Truthful backend state mapping) -->
+                <div class="steps-timeline" id="proc-steps-timeline">
+                    <!-- Step 1: Transcribing Audio -->
+                    <div class="step-item" id="step-transcribing">
+                        <div class="step-indicator running">
+                            <span class="step-spin"></span>
+                        </div>
+                        <div class="step-content">
+                            <div class="step-title">Transcribing audio...</div>
+                            <div class="step-detail">IndicConformer multilingual ASR (Tamil / English)</div>
+                        </div>
+                        <div class="step-badge running" id="step-badge-transcribing">Running</div>
+                    </div>
+
+                    <!-- Step 2: Extracting Clinical Information -->
+                    <div class="step-item" id="step-extracting">
+                        <div class="step-indicator pending">○</div>
+                        <div class="step-content">
+                            <div class="step-title">Extracting clinical information...</div>
+                            <div class="step-detail">Speaker-aware clinical entity extraction & vitals</div>
+                        </div>
+                        <div class="step-badge pending" id="step-badge-extracting">Pending</div>
+                    </div>
+
+                    <!-- Step 3: Validating Medical Schema -->
+                    <div class="step-item" id="step-validating">
+                        <div class="step-indicator pending">○</div>
+                        <div class="step-content">
+                            <div class="step-title">Building clinical record...</div>
+                            <div class="step-detail">Deterministic Pydantic validation & clinical schema</div>
+                        </div>
+                        <div class="step-badge pending" id="step-badge-validating">Pending</div>
+                    </div>
+
+                    <!-- Step 4: Medical Guideline Cross-Referencing -->
+                    <div class="step-item" id="step-guidelines">
+                        <div class="step-indicator pending">○</div>
+                        <div class="step-content">
+                            <div class="step-title">Cross-referencing medical guidelines...</div>
+                            <div class="step-detail" id="step-detail-guidelines">Comparing with ICMR 2022 / MoHFW Standard Treatment Guidelines</div>
+                        </div>
+                        <div class="step-badge pending" id="step-badge-guidelines">Pending</div>
+                    </div>
+
+                    <!-- Step 5: Checking Medications & Dosages -->
+                    <div class="step-item" id="step-medications">
+                        <div class="step-indicator pending">○</div>
+                        <div class="step-content">
+                            <div class="step-title">Checking medications & instructions...</div>
+                            <div class="step-detail">Dosage safety, timings, food instructions</div>
+                        </div>
+                        <div class="step-badge pending" id="step-badge-medications">Pending</div>
+                    </div>
+
+                    <!-- Step 6: Preparing Patient Summary -->
+                    <div class="step-item" id="step-summary">
+                        <div class="step-indicator pending">○</div>
+                        <div class="step-content">
+                            <div class="step-title">Preparing your summary...</div>
+                            <div class="step-detail">PatientSummaryAgent & SummaryGuardrail verification</div>
+                        </div>
+                        <div class="step-badge pending" id="step-badge-summary">Pending</div>
+                    </div>
+
+                    <!-- Step 7: Doctor Review & Approval -->
+                    <div class="step-item" id="step-doctor-approval">
+                        <div class="step-indicator pending">○</div>
+                        <div class="step-content">
+                            <div class="step-title">Waiting for doctor approval...</div>
+                            <div class="step-detail">Physician review gate required before patient access</div>
+                        </div>
+                        <div class="step-badge pending" id="step-badge-doctor-approval">Pending</div>
+                    </div>
+                </div>
+
+                <!-- Live Actions Footer -->
+                <div class="processing-footer">
+                    <button class="btn btn-secondary" onclick="PostVisitApp.refreshActiveProcessing()">
+                        ↻ Refresh Status
+                    </button>
+                    <button class="btn btn-primary" id="proc-open-detail-btn" onclick="PostVisitApp.openDetailFromProcessing()">
+                        Open Consultation Details & Review →
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- VIEW 4: DOCTOR CLINICAL REVIEW WORKBENCH (Stage 5B) -->
+        <section id="detail-view" class="view-panel" style="display:none;" aria-label="Doctor Clinical Review Workbench">
+            
+            <!-- Workbench Header Bar -->
+            <div class="patient-profile-header" style="margin-bottom: 1.25rem;">
+                <div class="patient-info-left">
+                    <button class="btn btn-outline" onclick="PostVisitApp.returnFromDetail()" style="margin-right: 0.5rem;">
+                        ← Back to Queue
+                    </button>
+                    <div class="patient-avatar-large" style="background: linear-gradient(135deg, #0284c7, #0369a1);">🩺</div>
+                    <div>
+                        <div class="patient-name-title">
+                            <span id="doc-workbench-patient-name">Patient Consultation Review</span>
+                            <span class="pill-tag pill-tag-blue" id="doc-workbench-patient-id">ID: PT-0000</span>
+                            <span class="badge badge-warning" id="doc-workbench-status-badge">PENDING REVIEW</span>
+                        </div>
+                        <div class="patient-tags-row" id="doc-workbench-tags-row">
+                            <span class="pill-tag pill-tag-blue" id="doc-workbench-demographics">Demographics: Loading...</span>
+                            <span class="pill-tag pill-tag-red" id="doc-workbench-allergies">Allergies: None</span>
+                            <span class="pill-tag pill-tag-amber" id="doc-workbench-conditions">Conditions: None</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="patient-info-right" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="PostVisitApp.openDoctorSourceModal()">
+                        🔍 View Source Record
+                    </button>
+                    <button class="btn btn-secondary" onclick="PostVisitApp.openDoctorVoiceModal()">
+                        🎙️ Record Clinical Note
+                    </button>
+                    <button class="btn btn-primary" onclick="PostVisitApp.switchDoctorTab('ask-ai')">
+                        ✨ Ask AI About Visit
+                    </button>
+                </div>
+            </div>
+
+            <!-- Doctor Quick Summary Strip (Section 6: Compact Doctor Quick Summary) -->
+            <div class="doctor-quick-summary-box" style="margin-bottom: 1.5rem;">
+                <div class="quick-summary-header">
+                    <div class="quick-summary-title">
+                        <span>⚡</span> Physician Quick Summary — Consultation & Longitudinal Context
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="badge badge-info" id="doc-qs-consultation-date">Date: Today</span>
+                        <button class="btn btn-outline" style="font-size:0.75rem; padding:0.25rem 0.5rem;" onclick="PostVisitApp.openDoctorSourceModal()">
+                            🔍 View Source Record
+                        </button>
+                    </div>
+                </div>
+                <div class="quick-summary-grid">
+                    <div class="quick-summary-item">
+                        <div class="qs-label">Chief Complaint / Reason</div>
+                        <div class="qs-val" id="doc-qs-reason">Evaluating...</div>
+                    </div>
+                    <div class="quick-summary-item">
+                        <div class="qs-label">Key Symptoms</div>
+                        <div class="qs-val" id="doc-qs-symptoms">Documented symptoms...</div>
+                    </div>
+                    <div class="quick-summary-item">
+                        <div class="qs-label">Relevant HPI</div>
+                        <div class="qs-val" id="doc-qs-hpi">Duration and progression...</div>
+                    </div>
+                    <div class="quick-summary-item">
+                        <div class="qs-label">Important Findings</div>
+                        <div class="qs-val" id="doc-qs-findings">Physical exam & vitals...</div>
+                    </div>
+                    <div class="quick-summary-item">
+                        <div class="qs-label">Current Medications</div>
+                        <div class="qs-val" id="doc-qs-meds">Active prescriptions...</div>
+                    </div>
+                    <div class="quick-summary-item">
+                        <div class="qs-label">Diagnostic Tests</div>
+                        <div class="qs-val" id="doc-qs-tests">Ordered tests...</div>
+                    </div>
+                    <div class="quick-summary-item">
+                        <div class="qs-label">Upcoming Follow-Up</div>
+                        <div class="qs-val" id="doc-qs-followup">Follow-up schedule...</div>
+                    </div>
+                    <div class="quick-summary-item">
+                        <div class="qs-label">Previous Relevant Visit</div>
+                        <div class="qs-val" id="doc-qs-prev-visit">Prior visit history...</div>
+                    </div>
+                    <div class="quick-summary-item" style="grid-column: 1 / -1;">
+                        <div class="qs-label">Relevant Lab Reports</div>
+                        <div class="qs-val" id="doc-qs-labs">Potentially relevant reports identified for clinician review.</div>
+                    </div>
+                </div>
+                <div style="margin-top: 0.65rem; font-size: 0.76rem; color: var(--text-muted); font-style: italic;">
+                    Organizational summary strictly derived from clinical consultation record. Under PostVisit AI clinical safety protocol, it does not replace the verified underlying medical chart.
+                </div>
+            </div>
+
+            <!-- Doctor Workbench Sub-Navigation Tabs -->
+            <nav class="doctor-subnav" aria-label="Doctor Review Tabs">
+                <button class="doctor-tab-btn active" id="dtab-clinical-btn" onclick="PostVisitApp.switchDoctorTab('clinical')">
+                    📋 Clinical Information
+                </button>
+                <button class="doctor-tab-btn" id="dtab-history-btn" onclick="PostVisitApp.switchDoctorTab('history')">
+                    📁 Visit History
+                </button>
+                <button class="doctor-tab-btn" id="dtab-labs-btn" onclick="PostVisitApp.switchDoctorTab('labs')">
+                    🧪 Lab Reports <span class="badge badge-warning" id="doc-labs-count-badge" style="display:none; font-size:0.65rem;">0</span>
+                </button>
+                <button class="doctor-tab-btn" id="dtab-guidelines-btn" onclick="PostVisitApp.switchDoctorTab('guidelines')">
+                    📚 Guideline Cross-Ref <span class="badge badge-info" id="doc-guidelines-count-badge" style="display:none; font-size:0.65rem;">0</span>
+                </button>
+                <button class="doctor-tab-btn" id="dtab-summary-btn" onclick="PostVisitApp.switchDoctorTab('summary')">
+                    ✍️ Summary Sign-Off Gate
+                </button>
+                <button class="doctor-tab-btn" id="dtab-ask-btn" onclick="PostVisitApp.switchDoctorTab('ask-ai')">
+                    🤖 Doctor Ask AI
+                </button>
+                <button class="doctor-tab-btn" id="dtab-voice-btn" onclick="PostVisitApp.switchDoctorTab('voice')">
+                    🎙️ Clinical Voice Note
+                </button>
+                <button class="doctor-tab-btn" id="dtab-timeline-btn" onclick="PostVisitApp.switchDoctorTab('timeline')">
+                    ⏱️ 10-Step Timeline
+                </button>
+                <button class="doctor-tab-btn" id="dtab-audit-btn" onclick="PostVisitApp.switchDoctorTab('audit')">
+                    📜 Audit History
+                </button>
+            </nav>
+
+            <!-- SUBPANEL 1: CLINICAL OVERVIEW -->
+            <div id="doc-subpanel-clinical" class="doc-subpanel">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                    
+                    <!-- Symptoms & HPI -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="card-icon">🩺</span> Reported Symptoms & HPI</div>
+                            <button class="btn-ask-ai" onclick="PostVisitApp.askDoctorAiPreset('Explain reported symptoms and clinical progression in this visit')">
+                                ✨ Ask AI
+                            </button>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="font-size:0.85rem; color:#7dd3fc; margin-bottom:0.4rem;">Reported Symptoms</h4>
+                            <div id="doc-clinical-symptoms-list" style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="font-size:0.85rem; color:#7dd3fc; margin-bottom:0.4rem;">History of Present Illness (HPI)</h4>
+                            <div id="doc-clinical-hpi-text" style="font-size:0.88rem; color:#e2e8f0; line-height:1.5;">
+                                Documenting illness progression...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clinical Examination & Findings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="card-icon">🔍</span> Physical Examination & Findings</div>
+                            <button class="btn-ask-ai" onclick="PostVisitApp.askDoctorAiPreset('What are the key clinical findings and vitals in this consultation?')">
+                                ✨ Ask AI
+                            </button>
+                        </div>
+                        <div id="doc-clinical-findings-box" style="font-size:0.88rem; color:#e2e8f0; line-height:1.5;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Prescribed Medications & Instructions Table -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <div class="card-title"><span class="card-icon">💊</span> Prescribed Medications (Doctor Approved Record)</div>
+                        <button class="btn-ask-ai" onclick="PostVisitApp.askDoctorAiPreset('Review medication dosages, food timings, and potential drug interactions')">
+                            ✨ Verify Meds With AI
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="doc-medications-table">
+                            <thead>
+                                <tr>
+                                    <th>Medication Name</th>
+                                    <th>Strength / Dosage</th>
+                                    <th>Frequency</th>
+                                    <th>Timing & Route</th>
+                                    <th>Duration</th>
+                                    <th>Doctor Instructions</th>
+                                    <th>Speaker Provenance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="doc-medications-tbody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Diagnostic Tests & Doctor Recommendations -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="card-icon">🧪</span> Diagnostic Investigations Ordered</div>
+                        </div>
+                        <div id="doc-tests-box" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="card-icon">📋</span> Doctor Recommendations & Follow-Up</div>
+                        </div>
+                        <div id="doc-recommendations-box">
+                            <h4 style="font-size:0.85rem; color:#7dd3fc; margin-bottom:0.4rem;">Recommendations</h4>
+                            <div id="doc-recommendations-list" style="margin-bottom:1rem; font-size:0.88rem; color:#e2e8f0;"></div>
+                            <h4 style="font-size:0.85rem; color:#7dd3fc; margin-bottom:0.4rem;">Follow-Up Schedule</h4>
+                            <div id="doc-followup-text" style="font-size:0.88rem; color:#fde68a;"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Speaker-Attributed Diarized Transcript -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><span class="card-icon">🎙️</span> Speaker Diarization & Audio Transcript turns</div>
+                        <button class="btn-ask-ai" onclick="PostVisitApp.askDoctorAiPreset('What critical clinical information was discussed in this transcript?')">
+                            ✨ Analyze Transcript
+                        </button>
+                    </div>
+                    <div id="doc-transcript-turns-container" style="max-height: 420px; overflow-y: auto; padding-right: 0.5rem;">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SUBPANEL 2: LONGITUDINAL VISIT HISTORY -->
+            <div id="doc-subpanel-history" class="doc-subpanel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><span class="card-icon">📁</span> Patient Longitudinal Consultation History</div>
+                            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.25rem;">
+                                Review previous visit history, symptoms, clinical findings, and approved summaries before finalizing the current visit.
+                            </p>
+                        </div>
+                        <button class="btn-ask-ai" onclick="PostVisitApp.askDoctorAiPreset('Summarize the patient previous relevant visits and health trajectory')">
+                            ✨ Summarize Previous Visits
+                        </button>
+                    </div>
+                    <div id="doc-history-cards-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Populated dynamically via /api/v1/doctor/patient/{id}/overview -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPANEL 3: LAB REPORTS REVIEW -->
+            <div id="doc-subpanel-labs" class="doc-subpanel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><span class="card-icon">🧪</span> Laboratory & Diagnostic Investigation Reports</div>
+                            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.25rem;">
+                                Neutral clinical context: Potentially relevant reports identified for clinician review. Patient-submitted data is preserved; doctor corrections are stored separately with audit logging.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn-ask-ai" onclick="PostVisitApp.askDoctorAiPreset('Explain relevant lab report values in relation to the current clinical presentation')">
+                                ✨ Explain Labs with AI
+                            </button>
+                        </div>
+                    </div>
+                    <div id="doc-labs-list-container">
+                        <!-- Populated dynamically via /api/v1/doctor/lab-reports -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPANEL 4: GUIDELINE CROSS-REFERENCE -->
+            <div id="doc-subpanel-guidelines" class="doc-subpanel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><span class="card-icon">📚</span> ICMR / MoHFW Standard Treatment Guidelines Cross-Referencing</div>
+                            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.25rem;">
+                                Verified comparisons against national treatment guidelines. Neutral discrepancy phrasing: "Potential discrepancy for clinician review".
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span class="badge badge-info" id="doc-guideline-status-badge">Completed</span>
+                            <button class="btn btn-secondary" onclick="PostVisitApp.openGuidelinesModal()">
+                                📖 Registry
+                            </button>
+                        </div>
+                    </div>
+                    <div id="doc-guideline-findings-container">
+                        <!-- Populated dynamically via /api/v1/doctor/consultations/{cid}/guidelines -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPANEL 5: SUMMARY SIGN-OFF GATE -->
+            <div id="doc-subpanel-summary" class="doc-subpanel" style="display:none;">
+                
+                <!-- Side-by-Side Comparison: Source Medical Record vs Generated Patient Summary -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                    
+                    <!-- Left: Source Medical Record -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="card-icon">📋</span> Source Medical Record (Doctor Approved JSON)</div>
+                            <span class="badge badge-approved">Official Chart</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="doc-source-record-summary" class="clinical-box" style="margin-bottom: 1rem;">
+                                <!-- Rendered source summary -->
+                            </div>
+                            <h4 style="font-size:0.85rem; color:#7dd3fc; margin-bottom:0.4rem;">Official Prescriptions</h4>
+                            <div id="doc-source-medications-list" style="margin-bottom: 1rem;"></div>
+                            <h4 style="font-size:0.85rem; color:#7dd3fc; margin-bottom:0.4rem;">Safety & Red Flags</h4>
+                            <div id="doc-source-warnings-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Generated Patient Summary -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="card-icon">📄</span> Generated Patient Summary</div>
+                            <div class="lang-selector-group">
+                                <label for="doc-summary-lang-select" class="sr-only" style="display:none;">Language</label>
+                                <select id="doc-summary-lang-select" onchange="PostVisitApp.switchDoctorSummaryLanguage(this.value)">
+                                    <option value="en">English (Patient-Friendly)</option>
+                                    <option value="ta">தமிழ் (Tamil Summary)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="doc-generated-summary-display" class="summary-display-box" style="margin-bottom: 1rem;">
+                                <!-- Summary content -->
+                            </div>
+                            <div id="doc-guardrail-findings-box" class="guardrail-box">
+                                <!-- Guardrail verification report -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Doctor Review & Sign-Off Gate Card -->
+                <div class="card review-card" id="doc-review-gate-card">
+                    <div class="card-header">
+                        <div class="card-title"><span class="card-icon">✍️</span> Doctor Review & Patient Summary Sign-Off Gate</div>
+                        <span class="badge badge-warning" id="doc-signoff-badge">Physician Sign-Off Required</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="review-desc">
+                            Under PostVisit AI clinical safety protocol, the patient cannot view this summary until you verify and sign off.
+                            Only after approval is the summary released to the patient portal.
+                        </p>
+
+                        <form id="doctor-review-form" onsubmit="PostVisitApp.submitDoctorReview(event)">
+                            <div class="form-group">
+                                <label class="form-label">Physician Review Decision</label>
+                                <div class="radio-cards">
+                                    <label class="radio-card">
+                                        <input type="radio" name="review_decision" value="approve" checked onchange="PostVisitApp.toggleAmendmentBox(false)">
+                                        <div>
+                                            <strong>Approve Summary (SUMMARY_APPROVED)</strong>
+                                            <div class="radio-sub">Release doctor-verified summary to patient portal</div>
+                                        </div>
+                                    </label>
+                                    <label class="radio-card">
+                                        <input type="radio" name="review_decision" value="amend" onchange="PostVisitApp.toggleAmendmentBox(true)">
+                                        <div>
+                                            <strong>Amend & Approve</strong>
+                                            <div class="radio-sub">Edit summary text before releasing to patient</div>
+                                        </div>
+                                    </label>
+                                    <label class="radio-card">
+                                        <input type="radio" name="review_decision" value="reject" onchange="PostVisitApp.toggleAmendmentBox(false)">
+                                        <div>
+                                            <strong>Reject Summary (SUMMARY_REJECTED)</strong>
+                                            <div class="radio-sub">Flag for clinical review or AI re-generation</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="amendment-group" style="display: none;">
+                                <label class="form-label" for="amended-summary-text">Amended Patient Summary Text</label>
+                                <textarea id="amended-summary-text" class="form-control" rows="6" placeholder="Edit the summary text here..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="doctor-notes-input">Physician Audit Notes / Rationale</label>
+                                <textarea id="doctor-notes-input" class="form-control" rows="2" placeholder="e.g. Confirmed HbA1c target, verified metformin dosage, reviewed dietary guidance."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block" id="submit-review-btn">
+                                Confirm Decision & Sign Off Summary →
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SUBPANEL 6: DOCTOR ASK AI -->
+            <div id="doc-subpanel-ask" class="doc-subpanel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><span class="card-icon">🤖</span> Grounded Clinical Inquiry ("Ask AI for Doctors")</div>
+                            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.25rem;">
+                                Physician decision-support assistant strictly grounded in verified clinical context. Clearly distinguishes Source Data, AI Summary, Guideline Evidence, and AI Interpretation.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Preset Quick Inquiries -->
+                    <div class="ai-quick-prompts" style="margin-bottom: 1rem;">
+                        <button class="prompt-chip" onclick="PostVisitApp.askDoctorAiPreset('Summarize the patient previous relevant visits')">
+                            📁 Summarize Previous Visits
+                        </button>
+                        <button class="prompt-chip" onclick="PostVisitApp.askDoctorAiPreset('Show me the medication history and verify dosages')">
+                            💊 Medication History & Dosages
+                        </button>
+                        <button class="prompt-chip" onclick="PostVisitApp.askDoctorAiPreset('Explain this lab report value and clinical significance')">
+                            🧪 Explain Lab Report Values
+                        </button>
+                        <button class="prompt-chip" onclick="PostVisitApp.askDoctorAiPreset('What information is missing from this consultation?')">
+                            ⚠️ What Information Is Missing?
+                        </button>
+                        <button class="prompt-chip" onclick="PostVisitApp.askDoctorAiPreset('Explain why this guideline finding was flagged')">
+                            📚 Explain Guideline Discrepancy
+                        </button>
+                    </div>
+
+                    <!-- Query Input Bar -->
+                    <div class="ai-input-bar" style="margin-bottom: 1.5rem;">
+                        <input type="text" id="doc-ai-query-input" class="ai-input-field" placeholder="Ask about this visit, previous visits, medications, labs, or guidelines..." onkeydown="if(event.key==='Enter') PostVisitApp.submitDoctorAiQuery()">
+                        <button class="btn btn-primary" onclick="PostVisitApp.submitDoctorAiQuery()">
+                            Ask AI →
+                        </button>
+                    </div>
+
+                    <!-- Grounded 4-Quadrant Response Box -->
+                    <div id="doc-ai-response-container">
+                        <div style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🩺</div>
+                            <p>Ask a question above or select a preset inquiry to view grounded clinical decision support.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPANEL 7: DOCTOR VOICE RECORDING -->
+            <div id="doc-subpanel-voice" class="doc-subpanel" style="display:none;">
+                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><span class="card-icon">🎙️</span> Doctor Clinical Voice Note Recording</div>
+                            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.25rem;">
+                                Record clinical observations, follow-up instructions, or summary corrections. Multilingual ASR (Tamil/English). Raw audio is NEVER stored silently — physician confirmation is mandatory.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Voice Recording Trigger / Banner -->
+                    <div style="text-align: center; padding: 2rem 1rem;">
+                        <div id="doc-voice-recording-indicator" style="display:none; margin-bottom:1rem;">
+                            <div class="pulse-dot" style="width:16px; height:16px; border-radius:50%; background:#ef4444; margin:0 auto 0.5rem auto; animation:pulse-red 1s infinite;"></div>
+                            <div style="font-weight:700; color:#f87171;">Recording Physician Note...</div>
+                            <div id="doc-voice-recording-timer" style="font-size:1.2rem; font-family:monospace; color:#fff;">00:00</div>
+                        </div>
+
+                        <button class="btn btn-primary" id="doc-voice-record-btn" onclick="PostVisitApp.toggleDoctorVoiceRecording()" style="padding: 0.8rem 1.5rem; font-size: 1rem; border-radius: 50px;">
+                            🎙️ Record Clinical Note
+                        </button>
+                    </div>
+
+                    <!-- Voice Note Confirmation Gate Box -->
+                    <div class="voice-confirm-gate-box" id="doc-voice-confirm-box" style="display:none;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                            <strong style="color:#fcd34d; font-size:0.95rem;">Transcribed Note Review (Doctor Confirmation Required)</strong>
+                            <span class="pill-tag pill-tag-amber" id="doc-voice-draft-id-tag">Draft #</span>
+                        </div>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">
+                            Review and edit the IndicConformer ASR transcription below before confirming. Unconfirmed drafts will not become part of the official clinical record.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">Note Category</label>
+                            <select id="doc-voice-category-select" class="form-control" style="background:#0f172a; color:#fff;">
+                                <option value="clinical_observation">Clinical Observation</option>
+                                <option value="follow_up_instructions">Follow-Up Instructions</option>
+                                <option value="summary_correction">Summary Correction</option>
+                                <option value="additional_note">Additional Clinical Note</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Physician Note Text</label>
+                            <textarea id="doc-voice-transcript-input" class="form-control" rows="4" placeholder="Edit transcription here..."></textarea>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+                            <button class="btn btn-secondary" onclick="PostVisitApp.discardDoctorVoiceDraft()">
+                                ✕ Discard Draft
+                            </button>
+                            <button class="btn btn-primary" onclick="PostVisitApp.confirmDoctorVoiceNote()">
+                                ✓ Confirm & Save to Clinical Record
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPANEL 8: 10-STEP TIMELINE -->
+            <div id="doc-subpanel-timeline" class="doc-subpanel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><span class="card-icon">⏱️</span> 10-Step Consultation Processing Timeline</div>
+                            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.25rem;">
+                                Real backend status for each processing stage. Truthful progression — no fake checkmarks.
+                            </p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="PostVisitApp.refreshDoctorTimeline()">
+                            ↻ Refresh Status
+                        </button>
+                    </div>
+                    <div class="timeline-10-container" id="doc-timeline-container">
+                        <!-- Populated dynamically via /api/v1/doctor/consultations/{cid}/timeline -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBPANEL 9: AUDIT TRAIL -->
+            <div id="doc-subpanel-audit" class="doc-subpanel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title"><span class="card-icon">📜</span> Append-Only Clinical Audit Trail</div>
+                            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.25rem;">
+                                Complete chronological log of all summary generation, guideline reviews, lab report corrections, and doctor sign-off decisions.
+                            </p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="PostVisitApp.refreshDoctorAuditTrail()">
+                            ↻ Refresh Log
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="doc-audit-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Event Type</th>
+                                    <th>Actor</th>
+                                    <th>Details</th>
+                                    <th>Severity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="doc-audit-tbody">
+                                <!-- Populated dynamically via /api/v1/doctor/consultations/{cid}/audit-trail -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- MODAL: UPLOAD NEW CONSULTATION -->
+    <div id="upload-modal" class="modal-backdrop" style="display:none;" onclick="PostVisitApp.closeUploadModal(event)">
+        <div class="modal-dialog" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">New Consultation Upload</h3>
+                <button class="modal-close" onclick="PostVisitApp.closeUploadModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="upload-form" onsubmit="PostVisitApp.handleUpload(event)">
+                    
+                    <div class="drop-zone" id="audio-drop-zone">
+                        <div class="drop-zone-icon">🎙️</div>
+                        <div class="drop-zone-text">Drag & drop consultation audio/video, or click to browse</div>
+                        <div class="drop-zone-sub">Supported formats: WAV, MP3, MP4, M4A, FLAC, OGG (Max 25MB)</div>
+                        <input type="file" id="media-file-input" accept="audio/*,video/*" style="display:none;" onchange="PostVisitApp.onFileSelected(this)">
+                        <button type="button" class="btn btn-secondary mt-2" onclick="document.getElementById('media-file-input').click()">
+                            Browse Local Files
+                        </button>
+                        <div id="selected-file-name" class="selected-file-label"></div>
+                    </div>
+
+                    <div class="form-divider">
+                        <span>OR TEST WITH A DEMO PRESET</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Clinical Scenario Presets</label>
+                        <div class="scenario-buttons">
+                            <button type="button" class="btn btn-preset" onclick="PostVisitApp.selectDemoPreset('t2d_tamil_followup')">
+                                <strong>Scenario A: Type 2 Diabetes Follow-Up</strong>
+                                <span>Tamil/English, Metformin 500mg, HbA1c review</span>
+                            </button>
+                            <button type="button" class="btn btn-preset" onclick="PostVisitApp.selectDemoPreset('hypertension_amlodipine')">
+                                <strong>Scenario B: Hypertension Stage 1</strong>
+                                <span>English, Amlodipine 5mg, Dietary sodium guidance</span>
+                            </button>
+                            <button type="button" class="btn btn-preset" onclick="PostVisitApp.selectDemoPreset('acute_febrile_illness')">
+                                <strong>Scenario C: Acute Febrile Illness</strong>
+                                <span>Tamil/English, Paracetamol 650mg, Red flags SpO2</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" onclick="PostVisitApp.closeUploadModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="start-upload-btn">
+                            Start Consultation Processing →
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MEDICAL GUIDELINES REGISTRY -->
+    <div id="guidelines-modal" class="modal-backdrop" style="display:none;" onclick="PostVisitApp.closeGuidelinesModal(event)">
+        <div class="modal-dialog modal-large" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Authoritative Clinical Guidelines Registry (India)</h3>
+                <button class="modal-close" onclick="PostVisitApp.closeGuidelinesModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    PostVisit AI strictly references approved, checksum-verified clinical guidelines from the Indian Council of Medical Research (ICMR) and the Ministry of Health and Family Welfare (MoHFW).
+                </p>
+                <div class="guideline-sources-grid" id="guidelines-sources-list">
+                    <!-- Populated dynamically via /api/v1/guidelines/sources -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="PostVisitApp.closeGuidelinesModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LAB REPORT DOCUMENT UPLOAD -->
+    <div id="lab-upload-modal" class="modal-backdrop" style="display:none;" onclick="PostVisitApp.closeLabUploadModal(event)">
+        <div class="modal-dialog" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Upload Laboratory / Diagnostic Report</h3>
+                <button class="modal-close" onclick="PostVisitApp.closeLabUploadModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="lab-upload-form" onsubmit="PostVisitApp.handleLabUploadSubmit(event)">
+                    <div class="form-group">
+                        <label class="form-label">Test / Investigation Name *</label>
+                        <input type="text" id="lab-upload-test-name" class="form-input" placeholder="e.g. Glycated Hemoglobin (HbA1c), Lipid Profile" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Report Date</label>
+                        <input type="date" id="lab-upload-date" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Laboratory / Diagnostic Facility</label>
+                        <input type="text" id="lab-upload-facility" class="form-input" placeholder="e.g. Apollo Diagnostics, Dr. Lal PathLabs">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Select Medical Document (PDF, PNG, JPG, JPEG - Max 10MB) *</label>
+                        <input type="file" id="lab-upload-file-input" accept=".pdf,image/png,image/jpeg,image/jpg" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Optional Patient Notes</label>
+                        <textarea id="lab-upload-notes" class="form-textarea" placeholder="Add any notes about symptoms or context when test was conducted..."></textarea>
+                    </div>
+                    <div style="background:rgba(245, 158, 11, 0.08); border-left:3px solid var(--warning); padding:0.6rem 0.85rem; font-size:0.78rem; color:#fcd34d; margin-bottom:1rem;">
+                        ⚠️ <strong>Provenance Notice:</strong> This document will be labeled as a patient upload and unreviewed until inspected by your attending physician.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" onclick="PostVisitApp.closeLabUploadModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="lab-upload-submit-btn">Upload Lab Document →</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MANUAL LAB REPORT SUMMARY ENTRY -->
+    <div id="lab-manual-modal" class="modal-backdrop" style="display:none;" onclick="PostVisitApp.closeLabManualModal(event)">
+        <div class="modal-dialog" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Enter Manual Lab Report Summary</h3>
+                <button class="modal-close" onclick="PostVisitApp.closeLabManualModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="lab-manual-form" onsubmit="PostVisitApp.handleManualLabSubmit(event)">
+                    <div class="form-group">
+                        <label class="form-label">Test Name *</label>
+                        <input type="text" id="lab-manual-test-name" class="form-input" placeholder="e.g. Fasting Blood Glucose, Serum Creatinine" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Result Value *</label>
+                            <input type="text" id="lab-manual-result" class="form-input" placeholder="e.g. 138, 7.8, 1.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Unit of Measure</label>
+                            <input type="text" id="lab-manual-unit" class="form-input" placeholder="e.g. mg/dL, %, mg/L">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label class="form-label">Reference Range</label>
+                            <input type="text" id="lab-manual-reference" class="form-input" placeholder="e.g. 70 - 110 mg/dL">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Report Date *</label>
+                            <input type="date" id="lab-manual-date" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Diagnostic Facility / Clinic</label>
+                        <input type="text" id="lab-manual-facility" class="form-input" placeholder="e.g. Metropolis Healthcare">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Patient Notes</label>
+                        <textarea id="lab-manual-notes" class="form-textarea" placeholder="e.g. Fasting 10 hours prior to blood draw"></textarea>
+                    </div>
+                    <div style="background:rgba(245, 158, 11, 0.08); border-left:3px solid var(--warning); padding:0.6rem 0.85rem; font-size:0.78rem; color:#fcd34d; margin-bottom:1rem;">
+                        ℹ️ <strong>Patient-Provided Data:</strong> Manually entered values are stored as patient-reported summaries and are not physician-verified.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" onclick="PostVisitApp.closeLabManualModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Lab Summary →</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE-IN CONTEXTUAL AI ASSISTANT DRAWER -->
+    <div id="ai-drawer-overlay" class="ai-drawer-overlay" onclick="PostVisitApp.closeAiAssistant(event)">
+        <div class="ai-drawer-panel" onclick="event.stopPropagation()">
+            <div class="ai-drawer-header">
+                <div>
+                    <div style="font-weight:800; font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+                        <span>🤖</span> PostVisit AI Assistant
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">
+                        Grounded in approved records for Ananya Patel (PT-89241)
+                    </div>
+                </div>
+                <button class="modal-close" onclick="PostVisitApp.closeAiAssistant()">×</button>
+            </div>
+
+            <!-- Drawer Messages Container -->
+            <div class="ai-messages-area" id="drawer-ai-messages-container">
+                <div class="ai-msg ai-msg-assistant">
+                    <strong>Welcome to your AI Health Assistant! 👋</strong><br>
+                    I am grounded strictly in your doctor's approved clinical records and instructions. Ask me any question about your visit, medications, blood pressure trends, or recovery instructions.
+                    <div class="ai-disclaimer-note">
+                        Provides educational explanations. Does not diagnose or prescribe.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drawer Voice Recording Banner -->
+            <div id="drawer-voice-banner" class="voice-recording-banner" style="display:none; margin: 0 1rem 0.5rem 1rem;">
+                <div style="display:flex; align-items:center; gap:0.6rem;">
+                    <div style="width:10px; height:10px; border-radius:50%; background:#ef4444; animation:pulse-red 1s infinite;"></div>
+                    <span style="font-size:0.85rem; font-weight:700; color:#f87171;">Recording Voice Note...</span>
+                    <span class="voice-timer" id="drawer-voice-timer">00:00</span>
+                </div>
+                <div style="display:flex; gap:0.4rem;">
+                    <button class="btn btn-sm btn-secondary" onclick="PostVisitApp.cancelVoiceRecording()">✕</button>
+                    <button class="btn btn-sm btn-primary" onclick="PostVisitApp.stopVoiceRecording()">⏹️ Stop</button>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions -->
+            <div class="ai-quick-prompts">
+                <button class="prompt-chip" onclick="PostVisitApp.sendQuickPrompt('Explain my last visit in simple Tamil')">
+                    🇮🇳 Explain in Tamil
+                </button>
+                <button class="prompt-chip" onclick="PostVisitApp.sendQuickPrompt('Explain my blood pressure readings and trends')">
+                    🩺 BP Trends
+                </button>
+                <button class="prompt-chip" onclick="PostVisitApp.sendQuickPrompt('What does after food mean for my medications?')">
+                    💊 Medicine Timing
+                </button>
+            </div>
+
+            <!-- Input Bar with Dedicated Microphone -->
+            <div class="ai-input-bar">
+                <button class="btn-mic-record" id="drawer-mic-btn" title="Voice Recording (Tamil/English)" onclick="PostVisitApp.toggleVoiceRecording()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" y1="19" x2="12" y2="23"/>
+                        <line x1="8" y1="23" x2="16" y2="23"/>
+                    </svg>
+                </button>
+                <input type="text" id="drawer-ai-input-text" class="ai-input-field" placeholder="Ask about medications, labs, or recovery..." onkeydown="if(event.key==='Enter') PostVisitApp.sendDrawerAiMessage()">
+                <button class="btn btn-primary" onclick="PostVisitApp.sendDrawerAiMessage()">
+                    Send →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING AI ASSISTANT BUTTON (Visible in Patient View) -->
+    <button class="floating-ai-trigger" id="floating-ai-btn" onclick="PostVisitApp.openAiAssistant()" style="display:none;" title="Open AI Health Assistant">
+        <span>✨</span> Ask PostVisit AI
+    </button>
+
+    <!-- MODAL: DOCTOR LAB REPORT REVIEW (Stage 5B) -->
+    <div id="doctor-lab-review-modal" class="modal-backdrop" style="display:none;" onclick="PostVisitApp.closeDoctorLabModal(event)">
+        <div class="modal-dialog modal-large" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Doctor Lab Report Verification & Review</h3>
+                <button class="modal-close" onclick="PostVisitApp.closeDoctorLabModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: rgba(14, 165, 233, 0.08); border-left: 3px solid var(--primary); padding: 0.65rem 1rem; border-radius: 4px; font-size: 0.8rem; color: #7dd3fc; margin-bottom: 1rem;">
+                    ℹ️ <strong>Clinical Safety & Provenance:</strong> The patient's original submitted values and documents remain permanently immutable. Your verified values and corrections are stored separately with your physician identity and timestamped audit trail.
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="card" style="margin: 0; background: rgba(15, 23, 42, 0.6);">
+                        <h4 style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem;">PATIENT SUBMISSION (ORIGINAL)</h4>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #fff;" id="modal-lab-test-name">-</div>
+                        <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;" id="modal-lab-date">-</div>
+                        <div style="margin-top: 0.6rem; font-size: 0.88rem;">
+                            Result: <strong style="color: #f59e0b;" id="modal-lab-patient-val">-</strong>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                            Reference Range: <span id="modal-lab-reference">-</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; font-style: italic;">
+                            Patient Notes: <span id="modal-lab-patient-notes">None provided</span>
+                        </div>
+                        <div style="margin-top: 0.5rem;" id="modal-lab-extraction-badge"></div>
+                    </div>
+
+                    <div class="card" style="margin: 0; border-color: rgba(14, 165, 233, 0.3);">
+                        <h4 style="font-size: 0.85rem; color: #38bdf8; margin-bottom: 0.5rem;">PHYSICIAN VERIFIED DATA</h4>
+                        <form id="doc-lab-review-form" onsubmit="PostVisitApp.submitDoctorLabReview(event)">
+                            <input type="hidden" id="modal-lab-report-id">
+                            <div class="form-group" style="margin-bottom: 0.6rem;">
+                                <label class="form-label" style="font-size: 0.8rem;">Verified Result Value</label>
+                                <input type="text" id="doc-lab-verified-value" class="form-input" placeholder="e.g. 142">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0.6rem;">
+                                <label class="form-label" style="font-size: 0.8rem;">Verified Unit</label>
+                                <input type="text" id="doc-lab-verified-unit" class="form-input" placeholder="e.g. mg/dL">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0.6rem;">
+                                <label class="form-label" style="font-size: 0.8rem;">Review Decision</label>
+                                <select id="doc-lab-decision-select" class="form-input" onchange="PostVisitApp.onDoctorLabDecisionChange(this.value)">
+                                    <option value="REPORT_REVIEWED">REPORT_REVIEWED (Clinically Verified)</option>
+                                    <option value="REPORT_NEEDS_CLARIFICATION">REPORT_NEEDS_CLARIFICATION (Request Details)</option>
+                                    <option value="REPORT_REJECTED">REPORT_REJECTED (Invalid / Incomplete)</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="doc-lab-clarification-group" style="display:none; margin-bottom: 0.6rem;">
+                                <label class="form-label" style="font-size: 0.8rem; color:#f59e0b;">Clarification Request to Patient</label>
+                                <input type="text" id="doc-lab-clarification-text" class="form-input" placeholder="e.g. Please upload the complete 2nd page of lipid profile">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0.6rem;">
+                                <label class="form-label" style="font-size: 0.8rem;">Physician Notes</label>
+                                <textarea id="doc-lab-notes" class="form-textarea" style="height: 50px;" placeholder="Optional clinical note for medical record..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">
+                                Submit Lab Review & Verification
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="PostVisitApp.closeDoctorLabModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: VIEW SOURCE CLINICAL RECORD (Stage 5B Section 6) -->
+    <div id="doctor-source-record-modal" class="modal-backdrop" style="display:none;" onclick="PostVisitApp.closeDoctorSourceModal(event)">
+        <div class="modal-dialog modal-large" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Official Medical Record & Audio Transcript Turns</h3>
+                <button class="modal-close" onclick="PostVisitApp.closeDoctorSourceModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: rgba(14, 165, 233, 0.08); border-left: 3px solid var(--primary); padding: 0.65rem 1rem; border-radius: 4px; font-size: 0.8rem; color: #7dd3fc; margin-bottom: 1rem;">
+                    ℹ️ <strong>Immutable Medical Chart:</strong> This is the verified structured JSON extraction and speaker-attributed transcript. It cannot be altered by AI summaries or quick overviews.
+                </div>
+                
+                <h4 style="font-size: 0.9rem; color: #fff; margin-bottom: 0.5rem;">Structured Medical JSON</h4>
+                <pre id="modal-source-json-view" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 1rem; color: #38bdf8; font-family: monospace; font-size: 0.8rem; max-height: 250px; overflow-y: auto;"></pre>
+
+                <h4 style="font-size: 0.9rem; color: #fff; margin: 1rem 0 0.5rem 0;">Diarized Transcript Turns</h4>
+                <div id="modal-source-transcript-view" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 1rem; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="PostVisitApp.closeDoctorSourceModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DOCTOR QUICK VOICE RECORDING (Stage 5B Section 17) -->
+    <div id="doctor-voice-modal" class="modal-backdrop" style="display:none;" onclick="PostVisitApp.closeDoctorVoiceModal(event)">
+        <div class="modal-dialog" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Record Physician Clinical Note</h3>
+                <button class="modal-close" onclick="PostVisitApp.closeDoctorVoiceModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align:center; padding: 1.5rem 0;">
+                    <div id="modal-voice-recording-indicator" style="display:none; margin-bottom:1rem;">
+                        <div class="pulse-dot" style="width:16px; height:16px; border-radius:50%; background:#ef4444; margin:0 auto 0.5rem auto; animation:pulse-red 1s infinite;"></div>
+                        <div style="font-weight:700; color:#f87171;">Recording Speech (IndicConformer ASR)...</div>
+                        <div id="modal-voice-recording-timer" style="font-size:1.2rem; font-family:monospace; color:#fff;">00:00</div>
+                    </div>
+
+                    <button class="btn btn-primary" id="modal-voice-record-btn" onclick="PostVisitApp.toggleDoctorVoiceModalRecording()" style="padding: 0.8rem 1.6rem; font-size: 1rem; border-radius: 50px;">
+                        🎙️ Start Voice Recording
+                    </button>
+                </div>
+
+                <div id="modal-voice-confirm-box" style="display:none; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 6px; padding: 1rem; margin-top: 1rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                        <strong style="color:#fcd34d; font-size:0.88rem;">Doctor Confirmation Gate</strong>
+                        <span class="pill-tag pill-tag-amber" id="modal-voice-draft-badge">Draft</span>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0.5rem;">
+                        <label class="form-label" style="font-size:0.78rem;">Category</label>
+                        <select id="modal-voice-category-select" class="form-input" style="padding:0.35rem 0.6rem; font-size:0.8rem;">
+                            <option value="clinical_observation">Clinical Observation</option>
+                            <option value="follow_up_instructions">Follow-Up Instructions</option>
+                            <option value="summary_correction">Summary Correction</option>
+                            <option value="additional_note">Additional Clinical Note</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0.75rem;">
+                        <label class="form-label" style="font-size:0.78rem;">Transcribed Note (Edit Before Confirming)</label>
+                        <textarea id="modal-voice-transcript-text" class="form-textarea" style="height: 70px; font-size:0.85rem;" placeholder="Speech text will appear here..."></textarea>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+                        <button class="btn btn-sm btn-secondary" onclick="PostVisitApp.discardDoctorVoiceModalDraft()">Discard</button>
+                        <button class="btn btn-sm btn-primary" onclick="PostVisitApp.confirmDoctorVoiceModalNote()">✓ Confirm Note</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="PostVisitApp.closeDoctorVoiceModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Application Scripts -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

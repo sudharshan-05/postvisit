@@ -1,0 +1,37 @@
+{
+  "audio_file": "c:\\Users\\Sudharshan\\OneDrive\\Desktop\\POSTVIST\\test_two_speaker_tamil.wav",
+  "duration_sec": 34.45,
+  "raw_segments_count": 5,
+  "raw_segments": [
+    {
+      "segment_id": 1,
+      "start_sec": 1.32,
+      "end_sec": 9.78,
+      "speaker_id": "SPEAKER_00"
+    },
+    {
+      "segment_id": 2,
+      "start_sec": 10.65,
+      "end_sec": 16.98,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "segment_id": 3,
+      "start_sec": 17.7,
+      "end_sec": 21.91,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "segment_id": 4,
+      "start_sec": 22.89,
+      "end_sec": 29.02,
+      "speaker_id": "SPEAKER_01"
+    },
+    {
+      "segment_id": 5,
+      "start_sec": 29.76,
+      "end_sec": 34.45,
+      "speaker_id": "SPEAKER_01"
+    }
+  ]
+}

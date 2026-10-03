@@ -1,0 +1,93 @@
+{
+  "media_file": "C:\\Users\\Sudharshan\\OneDrive\\Desktop\\POSTVIST\\test3.mp4",
+  "audio_format": "MP4",
+  "audio_duration_sec": 25.28,
+  "processing_time_sec": 33.52,
+  "rtf": 1.33,
+  "speaker_turns": [
+    {
+      "turn_id": 1,
+      "speaker_id": "SPEAKER_00",
+      "speaker": "Patient",
+      "start_sec": 0.97,
+      "end_sec": 10.56,
+      "text": "டாக்டர் எனக்கு முன்னாடி மெட்டாஃபார்மின் ஃபைவ ஹண்டரட் எம்ஜி எடுத்துக்கிட்டு இருந்தேன் இப்போவும் அதை கன்ண்டினியூ பண்ணட்டான் உங்கள் பழைய ப்ஸ்கிரிப்ஷன் பார்த்துட்டு சொல்கிறேன் இப்போதைக்கி நீங்கள் அதை கன்ட்டினியூ பண்ண வேண்டாம்"
+    },
+    {
+      "turn_id": 2,
+      "speaker_id": "SPEAKER_01",
+      "speaker": "Doctor",
+      "start_sec": 11.61,
+      "end_sec": 22.32,
+      "text": "ஓகே டாக்டர் இப்போது இப்போது நீங்கள் பேராசட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மட்டும் இரவு சாப்பிட்ட பிறகு எடுத்துக்கோங்க த்ரீ டேஸ் எடுத்துக்கோங்க கன்ட்டினியூஸாக"
+    },
+    {
+      "turn_id": 3,
+      "speaker_id": "SPEAKER_00",
+      "speaker": "Patient",
+      "start_sec": 23.31,
+      "end_sec": 23.97,
+      "text": "ஆஃப்டர்ஃபு்"
+    }
+  ],
+  "role_mapping": {
+    "SPEAKER_00": "Patient",
+    "SPEAKER_01": "Doctor"
+  },
+  "speaker_labelled_transcript": "[00:00] Patient: டாக்டர் எனக்கு முன்னாடி மெட்டாஃபார்மின் ஃபைவ ஹண்டரட் எம்ஜி எடுத்துக்கிட்டு இருந்தேன் இப்போவும் அதை கன்ண்டினியூ பண்ணட்டான் உங்கள் பழைய ப்ஸ்கிரிப்ஷன் பார்த்துட்டு சொல்கிறேன் இப்போதைக்கி நீங்கள் அதை கன்ட்டினியூ பண்ண வேண்டாம்\n[00:11] Doctor: ஓகே டாக்டர் இப்போது இப்போது நீங்கள் பேராசட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மட்டும் இரவு சாப்பிட்ட பிறகு எடுத்துக்கோங்க த்ரீ டேஸ் எடுத்துக்கோங்க கன்ட்டினியூஸாக\n[00:23] Patient: ஆஃப்டர்ஃபு்",
+  "combined_transcript": "டாக்டர் எனக்கு முன்னாடி மெட்டாஃபார்மின் ஃபைவ ஹண்டரட் எம்ஜி எடுத்துக்கிட்டு இருந்தேன் இப்போவும் அதை கன்ண்டினியூ பண்ணட்டான் உங்கள் பழைய ப்ஸ்கிரிப்ஷன் பார்த்துட்டு சொல்கிறேன் இப்போதைக்கி நீங்கள் அதை கன்ட்டினியூ பண்ண வேண்டாம் ஓகே டாக்டர் இப்போது இப்போது நீங்கள் பேராசட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மட்டும் இரவு சாப்பிட்ட பிறகு எடுத்துக்கோங்க த்ரீ டேஸ் எடுத்துக்கோங்க கன்ட்டினியூஸாக ஆஃப்டர்ஃபு்",
+  "medical_information": {
+    "medications": [
+      {
+        "name": "Paracetamol",
+        "strength": "650 mg",
+        "dose": null,
+        "route": null,
+        "frequency": "once daily",
+        "specific_schedule": [
+          "night"
+        ],
+        "timing": "after food",
+        "duration": "3 days",
+        "source_speaker": "Doctor",
+        "source_text": "இப்போது நீங்கள் பேராசட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மட்டும் இரவு சாப்பிட்ட பிறகு எடுத்துக்கோங்க த்ரீ டேஸ் எடுத்துக்கோங்க",
+        "source_start": 11.0,
+        "source_end": 23.0
+      }
+    ],
+    "tests": [],
+    "instructions": [
+      "Do not continue Metformin for now"
+    ],
+    "follow_up": {
+      "time": null,
+      "instructions": "Doctor will review old prescription"
+    },
+    "warnings": [],
+    "symptoms_mentioned": [],
+    "uncertain_items": [],
+    "requires_doctor_review": true
+  },
+  "validation": {
+    "valid": true,
+    "requires_doctor_review": true,
+    "uncertain_items": [],
+    "errors": []
+  },
+  "doctor_verification": {
+    "status": "PENDING_DOCTOR_REVIEW",
+    "requires_doctor_review": true,
+    "verified_by": null,
+    "verification_timestamp": null,
+    "checklist": {
+      "symptoms_verified": false,
+      "medications_verified": false,
+      "tests_verified": false,
+      "instructions_verified": false,
+      "follow_up_verified": false
+    },
+    "uncertainties_to_resolve": [],
+    "doctor_notes": null,
+    "clinical_safety_notice": "AI-extracted clinical records require licensed physician verification prior to patient care plan issuance or electronic prescription generation."
+  }
+}

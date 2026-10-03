@@ -1,0 +1,79 @@
+{
+  "status": "completed",
+  "consultation_id": "f97e66a2-824e-4a27-b901-be39fe10866b",
+  "media_storage_path": "consultations/f97e66a2-824e-4a27-b901-be39fe10866b/original.mp4",
+  "input": {
+    "filename": "test5.mp4",
+    "media_type": "video/mp4",
+    "duration_seconds": 28.48
+  },
+  "transcript": [
+    {
+      "start": 0.57,
+      "end": 8.38,
+      "speaker": "Patient",
+      "text": "டாக்டர் எனக்கு ஒரு த்ரீ டேஸாக ஃபீவர் இருக்குது பாடி பெயினும் இருக்குது எஸ்ட்டே நைட்ட்ில் இருந்து ஹெட்ேக் ரொம்ப அதிகமாக இருக்குது"
+    },
+    {
+      "start": 9.81,
+      "end": 17.32,
+      "speaker": "Doctor",
+      "text": "ஓகே கவலைப்பட வேண்டாம் பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மார்னிங் அண்ட் நை் ஆஃப்டர் ஃபுட் எடுத்துக்கோங்க ஃபைவ் டேஸ் அதை கண்டினியூ பண்ணுங்கள்"
+    },
+    {
+      "start": 18.6,
+      "end": 21.07,
+      "speaker": "Patient",
+      "text": "மார்னிங் அண்ட் நைட் மட்டும் எடுத்தால் போதுமா டாக்டர்"
+    },
+    {
+      "start": 22.18,
+      "end": 27.48,
+      "speaker": "Doctor",
+      "text": "போதும் நிறைய தண்ணி குடிங்க அண்ட் டேக் ப்ராப்பர் ரெஸ்ட்ட் ஒருன் வீக் அப்புறம் ஃபாலோ அப் வாங்க"
+    }
+  ],
+  "medical_record": {
+    "medications": [
+      {
+        "name": "Paracetamol",
+        "strength": "650 mg",
+        "dose": "1 tablet",
+        "route": "oral",
+        "frequency": "twice daily",
+        "specific_schedule": [
+          "morning",
+          "night"
+        ],
+        "timing": "after food",
+        "duration": "5 days",
+        "source_speaker": "Doctor",
+        "source_text": "பேராசிட்டமால் சிக்ஸ் ஃபிஃப்டி எம்ஜி மார்னிங் அண்ட் நை் ஆஃப்டர் ஃபுட் எடுத்துக்கோங்க ஃபைவ் டேஸ் அதை கண்டினியூ பண்ணுங்கள்",
+        "source_start": 9.0,
+        "source_end": 18.0
+      }
+    ],
+    "tests": [],
+    "instructions": [
+      "Drink plenty of water",
+      "Take proper rest"
+    ],
+    "follow_up": {
+      "time": "1 week",
+      "instructions": "Come for follow-up"
+    },
+    "warnings": [],
+    "symptoms_mentioned": [
+      "Fever",
+      "Body pain",
+      "Headache"
+    ],
+    "uncertain_items": [],
+    "requires_doctor_review": true
+  },
+  "validation": {
+    "status": "valid",
+    "errors": [],
+    "warnings": []
+  }
+}

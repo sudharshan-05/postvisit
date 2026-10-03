@@ -1,0 +1,8 @@
+{
+  "SPEAKER_00": {
+    "role": "patient"
+  },
+  "SPEAKER_01": {
+    "role": "doctor"
+  }
+}

@@ -1,0 +1,21 @@
+# PostVisit AI - Core Speech-to-Text MVP Requirements
+# Target: Windows 64-bit, Python 3.11, CPU
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.0+cpu
+torchaudio==2.11.0+cpu
+transformers>=4.40.0
+numpy>=1.24.0
+soundfile>=0.12.1
+onnx>=1.15.0
+onnxruntime>=1.17.0
+huggingface-hub>=0.20.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+av>=18.0.0
+imageio-ffmpeg>=0.6.0
+fastapi>=0.110.0
+uvicorn>=0.28.0
+python-multipart>=0.0.9
+pytest>=8.0.0
+supabase>=2.30.0
+
