@@ -1042,6 +1042,7 @@ class PatientService:
         # 2. Gather approved clinical context
         consultations = self._get_patient_consultations(patient_id)
         target_cid = getattr(payload, "consultation_id", None) or getattr(payload, "context_id", None)
+        target_consultation = None
         if target_cid:
             for c in consultations:
                 if c.get("id") == target_cid:

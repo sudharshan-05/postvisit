@@ -8,6 +8,7 @@ from typing import Optional, Dict, Any
 from fastapi import APIRouter, Depends, Header, Query, Path, status
 from fastapi.responses import JSONResponse
 
+from api.auth import get_verified_user
 from src.schemas.guideline_schema import (
     GuidelineCrossReferenceResult,
     GuidelineDoctorReviewRequest
@@ -22,16 +23,17 @@ router = APIRouter(
 )
 
 
-def get_caller_identity(
-    x_user_role: Optional[str] = Header(default=None, alias="X-User-Role"),
-    x_user_id: Optional[str] = Header(default=None, alias="X-User-Id"),
-    role: Optional[str] = Query(default=None, description="Role override for testing"),
-    user_id: Optional[str] = Query(default=None, description="User ID override for testing")
+async def get_caller_identity(
+    user: Dict[str, Any] = Depends(get_verified_user)
 ) -> Dict[str, str]:
-    """Resolves caller role and identity from headers or query parameters."""
-    resolved_role = (role or x_user_role or "patient").lower()
-    resolved_id = user_id or x_user_id or "anonymous"
-    return {"role": resolved_role, "caller_id": resolved_id}
+    """Resolves caller role and identity securely from verified JWT or test identity."""
+    return {
+        "role": user["role"],
+        "caller_id": user["user_id"],
+        "user_id": user["user_id"],
+        "doctor_name": user.get("doctor_name") or user.get("email") or user["user_id"],
+    }
+
 
 
 # -------------------------------------------------------------
@@ -174,3 +176,121 @@ async def list_guideline_sources_endpoint():
     registry = get_guideline_registry()
     sources = registry.list_guidelines()
     return {"sources": sources, "total": len(sources)}
+
+
+import html
+import re
+
+def sanitize_text(text: Optional[str]) -> Optional[str]:
+    if not text:
+        return text
+    clean = re.sub(r'<[^>]*>', '', text)
+    return html.escape(clean).strip()
+
+
+@router.get(
+    "/api/v1/guidelines/search",
+    status_code=status.HTTP_200_OK,
+    summary="Search Curated Guideline Sources by Keyword",
+    description=(
+        "Searches the curated guideline source registry by keyword. "
+        "Returns only verified, provenance-tracked sources. "
+        "Does NOT perform live internet retrieval or invent citations."
+    )
+)
+async def search_guidelines_endpoint(
+    q: Optional[str] = Query(default=None, description="Search keyword (e.g. 'diabetes', 'hypertension')"),
+    topic: Optional[str] = Query(default=None, description="Filter by clinical topic"),
+    limit: int = Query(default=10, ge=1, le=50, description="Maximum results to return")
+):
+    clean_q = sanitize_text(q)
+    clean_topic = sanitize_text(topic)
+
+    if not clean_q and not clean_topic:
+        return {
+            "query": clean_q,
+            "results": [],
+            "total": 0,
+            "message": "Provide a search keyword using the ?q= parameter."
+        }
+
+    registry = get_guideline_registry()
+    all_guidelines = registry.list_guidelines()
+    q_lower = (clean_q or "").lower().strip()
+    topic_lower = (clean_topic or "").lower().strip()
+
+
+    matched = []
+    for guideline in all_guidelines:
+        if not guideline.get("verified", False):
+            continue
+
+        # Topic match
+        if topic_lower and topic_lower not in guideline.get("topic", "").lower():
+            continue
+
+        # Keyword match against keywords list, title, topic, and summary
+        if q_lower:
+            searchable = " ".join([
+                " ".join(guideline.get("keywords", [])),
+                guideline.get("title", ""),
+                guideline.get("topic", ""),
+                guideline.get("summary", "")
+            ]).lower()
+            if q_lower not in searchable:
+                continue
+
+        matched.append({
+            "id": guideline["id"],
+            "title": guideline["title"],
+            "organization": guideline["organization"],
+            "topic": guideline["topic"],
+            "version": guideline["version"],
+            "publication_date": guideline["publication_date"],
+            "summary": guideline["summary"],
+            "keywords": guideline["keywords"],
+            "source_url": guideline["source_url"],
+            "verified": guideline["verified"],
+            "checksum": guideline.get("checksum", ""),
+        })
+
+    matched = matched[:limit]
+
+    return {
+        "query": clean_q,
+        "topic_filter": clean_topic,
+        "results": matched,
+        "total": len(matched),
+        "note": (
+            "Results are from the curated PostVisit AI guideline registry (ICMR, MoHFW, WHO-SEARO). "
+            "These are verified sources only. No live internet retrieval is performed."
+        )
+    }
+
+
+# -------------------------------------------------------------
+# 6. Get Guideline by ID
+# -------------------------------------------------------------
+@router.get(
+    "/api/v1/guidelines/{guideline_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Get Curated Guideline Source by ID",
+    description="Retrieves a specific verified guideline and its evidence passages by ID."
+)
+async def get_guideline_by_id_endpoint(
+    guideline_id: str = Path(..., description="ID of the guideline (e.g. icmr-diabetes-2022)")
+):
+    registry = get_guideline_registry()
+    guideline = registry.get_guideline(guideline_id)
+    if not guideline:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "error": {
+                    "code": "GUIDELINE_NOT_FOUND",
+                    "message": f"Guideline with ID '{guideline_id}' not found in registry."
+                }
+            }
+        )
+    return guideline
+

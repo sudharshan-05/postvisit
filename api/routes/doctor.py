@@ -17,14 +17,16 @@ from typing import Dict, Any, List, Optional
 from fastapi import (
     APIRouter,
     Depends,
-    Header,
     Query,
     Path,
+    UploadFile,
+    File,
     status,
     HTTPException
 )
 from fastapi.responses import JSONResponse
 
+from api.auth import get_doctor_identity_secure
 from src.services.doctor_service import DoctorService, get_doctor_service
 from src.schemas.doctor_dashboard_schema import (
     DoctorConsultationListResponse,
@@ -46,41 +48,13 @@ router = APIRouter(prefix="/api/v1/doctor", tags=["Doctor Portal & Review"])
 
 
 # -----------------------------------------------------------------------------
-# Security & Doctor RBAC Dependency
+# Security — uses real JWT verification via api.auth
 # -----------------------------------------------------------------------------
-
-def get_doctor_identity(
-    x_user_role: Optional[str] = Header(default=None, alias="X-User-Role"),
-    x_user_id: Optional[str] = Header(default=None, alias="X-User-Id"),
-    x_doctor_name: Optional[str] = Header(default=None, alias="X-Doctor-Name"),
-    role: Optional[str] = Query(default=None, description="Role override for testing"),
-    user_id: Optional[str] = Query(default=None, description="User ID override for testing")
-) -> Dict[str, str]:
-    """
-    Enforces Doctor RBAC:
-    - Verifies authenticated clinician session.
-    - Strictly rejects patient roles with HTTP 403 Forbidden.
-    """
-    resolved_role = (role or x_user_role or "doctor").lower().strip()
-    resolved_id = user_id or x_user_id or "doc_rajesh_sharma"
-    resolved_name = x_doctor_name or "Dr. Rajesh Sharma, MD"
-
-    allowed_roles = ("doctor", "physician", "admin", "system", "clinician")
-    if resolved_role not in allowed_roles:
-        logger.warning(f"Unauthorized doctor route access attempt by role '{resolved_role}' (ID: '{resolved_id}')")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "code": "DOCTOR_ROLE_REQUIRED",
-                "message": "Access denied: This clinical endpoint requires an authorized clinician session."
-            }
-        )
-
-    return {
-        "role": resolved_role,
-        "caller_id": resolved_id,
-        "doctor_name": resolved_name
-    }
+# All doctor routes use get_doctor_identity_secure from api.auth.
+# This verifies the Supabase Bearer token and enforces doctor/clinician role.
+# No role or user_id injection via query params or headers is permitted.
+# get_doctor_identity is kept as an alias for backward test-fixture compatibility.
+get_doctor_identity = get_doctor_identity_secure
 
 
 # -----------------------------------------------------------------------------
@@ -431,3 +405,58 @@ async def get_consultation_audit_trail(
     """
     trail = doctor_service.get_audit_trail(consultation_id)
     return {"consultation_id": consultation_id, "audit_trail": trail, "total": len(trail)}
+
+
+# -----------------------------------------------------------------------------
+# 9. Route Aliases for Test & Frontend Compatibility
+# -----------------------------------------------------------------------------
+@router.get("/pending-reviews", response_model=DoctorConsultationListResponse, summary="Pending Reviews (Alias)", include_in_schema=False)
+async def get_doctor_pending_reviews_alias(
+    start_date: Optional[str] = Query(default=None),
+    end_date: Optional[str] = Query(default=None),
+    patient_id: Optional[str] = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    auth: Dict[str, str] = Depends(get_doctor_identity),
+    doctor_service: DoctorService = Depends(get_doctor_service)
+):
+    return await list_doctor_consultations(
+        filter_type="pending_review",
+        start_date=start_date,
+        end_date=end_date,
+        patient_id=patient_id,
+        page=page,
+        page_size=page_size,
+        auth=auth,
+        doctor_service=doctor_service
+    )
+
+
+@router.post("/voice-note", response_model=DoctorVoiceTranscribeResponse, summary="Doctor Voice Note (Alias)", include_in_schema=False)
+async def doctor_voice_note_alias(
+    file: UploadFile = File(..., description="Doctor audio file"),
+    consultation_id: Optional[str] = Query(default="default-consultation"),
+    mock_transcript: Optional[str] = Query(default=None),
+    auth: Dict[str, str] = Depends(get_doctor_identity),
+    doctor_service: DoctorService = Depends(get_doctor_service)
+):
+    return doctor_service.transcribe_voice_draft(
+        consultation_id=consultation_id or "default-consultation",
+        doctor_id=auth["caller_id"],
+        mock_transcript=mock_transcript
+    )
+
+
+@router.post("/ask-ai", response_model=DoctorAskAIResponse, summary="Doctor Ask AI (Alias)", include_in_schema=False)
+async def doctor_ask_ai_alias(
+    payload: DoctorAskAIRequest,
+    auth: Dict[str, str] = Depends(get_doctor_identity),
+    doctor_service: DoctorService = Depends(get_doctor_service)
+):
+    return await doctor_ask_ai(
+        consultation_id=payload.consultation_id or "default-consultation",
+        payload=payload,
+        auth=auth,
+        doctor_service=doctor_service
+    )
+

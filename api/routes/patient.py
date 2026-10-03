@@ -30,6 +30,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse, StreamingResponse, Response
 
+from api.auth import get_patient_identity_secure, enforce_patient_data_scope
 from src.services.patient_service import PatientService, get_patient_service
 from src.schemas.patient_portal_schema import (
     PatientProfileResponse,
@@ -55,42 +56,21 @@ router = APIRouter(prefix="/api/v1/patient", tags=["Patient Portal"])
 
 
 # -----------------------------------------------------------------------------
-# Auth Dependency for Patient Endpoints
+# Auth Dependencies — real JWT verification via api.auth
+# No role or user_id injection via query params or headers is permitted.
+# get_patient_identity and enforce_patient_access are aliases for backward
+# test-fixture compatibility only.
 # -----------------------------------------------------------------------------
-def get_patient_identity(
-    x_user_role: Optional[str] = Header(default=None, alias="X-User-Role"),
-    x_user_id: Optional[str] = Header(default=None, alias="X-User-Id"),
-    role: Optional[str] = Query(default=None, description="Role override for testing"),
-    user_id: Optional[str] = Query(default=None, description="User ID override for testing")
-) -> Dict[str, str]:
-    """
-    Resolves caller role and identity.
-    Defaults to role 'patient' and patient_id 'PT-89241' if headers are not set.
-    """
-    resolved_role = (role or x_user_role or "patient").lower()
-    resolved_id = user_id or x_user_id or "PT-89241"
-    return {"role": resolved_role, "caller_id": resolved_id}
+get_patient_identity = get_patient_identity_secure
 
 
 def enforce_patient_access(auth: Dict[str, str], requested_patient_id: Optional[str] = None) -> str:
     """
-    Enforces RBAC:
+    Enforces RBAC using the verified JWT identity:
     - Doctors and admins can access any patient record.
     - Patients can ONLY access their own records.
     """
-    caller_role = auth["role"]
-    caller_id = auth["caller_id"]
-
-    target_patient_id = requested_patient_id or caller_id
-
-    if caller_role == "patient" and caller_id != target_patient_id:
-        logger.warning(f"Patient access violation: caller '{caller_id}' attempted to access '{target_patient_id}'")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={"code": "FORBIDDEN", "message": "Access denied: Patients may only access their own medical records."}
-        )
-
-    return target_patient_id
+    return enforce_patient_data_scope(auth, requested_patient_id)
 
 
 # -----------------------------------------------------------------------------
@@ -399,3 +379,68 @@ async def voice_transcribe_endpoint(
     except Exception as e:
         logger.error(f"Voice transcription error: {e}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Transcription failed: {str(e)}")
+
+
+# -----------------------------------------------------------------------------
+# 10. Route Aliases for Frontend & Test Compatibility
+# -----------------------------------------------------------------------------
+@router.get("/dashboard", summary="Patient Dashboard (Alias for /overview)", include_in_schema=False)
+async def get_patient_dashboard_alias(
+    patient_id: Optional[str] = Query(default=None),
+    auth: Dict[str, str] = Depends(get_patient_identity),
+    service: PatientService = Depends(get_patient_service)
+):
+    return await get_health_overview_endpoint(patient_id=patient_id, auth=auth, service=service)
+
+
+@router.get("/health-trends", summary="Patient Health Trends (Alias)", include_in_schema=False)
+async def get_patient_health_trends_alias(
+    patient_id: Optional[str] = Query(default=None),
+    auth: Dict[str, str] = Depends(get_patient_identity),
+    service: PatientService = Depends(get_patient_service)
+):
+    overview = await get_health_overview_endpoint(patient_id=patient_id, auth=auth, service=service)
+    return {"patient_id": patient_id or auth["caller_id"], "health_trends": overview.health_trends}
+
+
+@router.post("/ask-ai", response_model=PatientChatResponse, summary="Ask AI (Alias for /chat)", include_in_schema=False)
+async def patient_ask_ai_alias(
+    payload: PatientChatRequest,
+    auth: Dict[str, str] = Depends(get_patient_identity),
+    service: PatientService = Depends(get_patient_service)
+):
+    return await patient_chat_endpoint(payload=payload, auth=auth, service=service)
+
+
+@router.post("/voice-note", response_model=PatientVoiceTranscribeResponse, summary="Voice Note (Alias for /voice-transcribe)", include_in_schema=False)
+async def patient_voice_note_alias(
+    file: UploadFile = File(..., description="Audio file"),
+    language: str = Form(default="auto"),
+    auth: Dict[str, str] = Depends(get_patient_identity),
+    service: PatientService = Depends(get_patient_service)
+):
+    return await voice_transcribe_endpoint(audio=file, language=language, auth=auth, service=service)
+
+
+@router.post("/lab-report", summary="Lab Report Upload (Alias for /lab-reports/upload)", include_in_schema=False)
+async def patient_lab_report_alias(
+    file: UploadFile = File(..., description="PDF or Image lab document"),
+    test_name: str = Form(default="Lab Test"),
+    report_date: Optional[str] = Form(default=None),
+    facility_name: Optional[str] = Form(default=None),
+    consultation_id: Optional[str] = Form(default=None),
+    patient_notes: Optional[str] = Form(default=None),
+    auth: Dict[str, str] = Depends(get_patient_identity),
+    service: PatientService = Depends(get_patient_service)
+):
+    return await upload_lab_report_endpoint(
+        file=file,
+        test_name=test_name,
+        report_date=report_date,
+        facility_name=facility_name,
+        consultation_id=consultation_id,
+        patient_notes=patient_notes,
+        auth=auth,
+        service=service
+    )
+

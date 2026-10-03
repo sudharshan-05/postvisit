@@ -5,7 +5,7 @@ visit history, structured recovery plans, lab reports, AI assistant chat, and vo
 """
 
 from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 # -------------------------------------------------------------
@@ -257,7 +257,9 @@ class LabReportListResponse(BaseModel):
 # 9. Contextual AI Chatbot ("Ask About Your Visit")
 # -------------------------------------------------------------
 class PatientChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=2000)
+    message: Optional[str] = Field(default=None, max_length=2000)
+    question: Optional[str] = Field(default=None, max_length=2000)
+    patient_id: Optional[str] = None
     context_type: str = Field(
         default="general",
         description="'general', 'last_visit', 'medications', 'lab_report', 'health_trend', 'recovery_plan'"
@@ -266,6 +268,15 @@ class PatientChatRequest(BaseModel):
     consultation_id: Optional[str] = None
     session_id: Optional[str] = None
     language: str = Field(default="en", description="'en' or 'ta'")
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_message(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            msg = data.get("message") or data.get("question")
+            if msg is not None:
+                data["message"] = str(msg).strip()
+        return data
 
 
 class PatientChatResponse(BaseModel):

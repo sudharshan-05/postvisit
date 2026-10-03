@@ -24,16 +24,20 @@ router = APIRouter(
 )
 
 
-def get_caller_identity(
-    x_user_role: Optional[str] = Header(default=None, alias="X-User-Role"),
-    x_user_id: Optional[str] = Header(default=None, alias="X-User-Id"),
-    role: Optional[str] = Query(default=None, description="Role override for testing"),
-    user_id: Optional[str] = Query(default=None, description="User ID override for testing")
+from api.auth import get_verified_user
+
+
+async def get_caller_identity(
+    user: Dict[str, Any] = Depends(get_verified_user)
 ) -> Dict[str, str]:
-    """Resolves caller role and identity from headers or query parameters."""
-    resolved_role = (role or x_user_role or "patient").lower()
-    resolved_id = user_id or x_user_id or "anonymous"
-    return {"role": resolved_role, "caller_id": resolved_id}
+    """Resolves caller role and identity securely from verified JWT or test identity."""
+    return {
+        "role": user["role"],
+        "caller_id": user["user_id"],
+        "user_id": user["user_id"],
+        "doctor_name": user.get("doctor_name") or user.get("email") or user["user_id"],
+    }
+
 
 
 # -------------------------------------------------------------

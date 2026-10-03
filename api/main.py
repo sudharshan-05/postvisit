@@ -3,13 +3,14 @@ PostVisit AI - FastAPI Application Entry Point
 Exposes RESTful endpoints for health checks, API metadata, and clinical consultation processing.
 """
 
+import os
 import sys
 import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
 
 from typing import Optional
-from fastapi import FastAPI, Request, status, Query
+from fastapi import FastAPI, Request, status, Query, Depends
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
@@ -27,6 +28,7 @@ from api.routes.summaries import router as summaries_router
 from api.routes.guidelines import router as guidelines_router
 from api.routes.patient import router as patient_router
 from api.routes.doctor import router as doctor_router
+from api.auth import get_verified_user
 
 # Setup top-level application logger
 logging.basicConfig(
@@ -70,13 +72,18 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS for future frontend integration
+# Enable CORS — environment-specific allowed origins
+# In production: set CORS_ALLOWED_ORIGINS to a comma-separated list of trusted frontend URLs.
+# In development: defaults to localhost for safety.
+_raw_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000")
+_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-User-Role", "X-User-Id", "X-Doctor-Name"],
 )
 
 
@@ -127,20 +134,29 @@ app.include_router(doctor_router)
     "/api/v1/auth/me",
     tags=["Authentication"],
     summary="Get Active User Session Profile",
-    description="Returns authenticated session details, user role, and permissions."
+    description=(
+        "Returns authenticated session details from a verified Supabase Bearer token. "
+        "Requires Authorization: Bearer <token>. "
+        "In test environments (APP_ENV=test), returns a test identity when no token is provided."
+    )
 )
 async def get_current_user_profile(
-    role: Optional[str] = Query(default=None),
-    user_id: Optional[str] = Query(default=None)
+    user: dict = Depends(get_verified_user)
 ):
-    current_role = (role or "doctor").lower()
-    if current_role in ("doctor", "physician", "system"):
+    """
+    Returns the verified user's identity from their Supabase JWT.
+    Does NOT accept ?role= query parameter overrides.
+    """
+    role = user["role"]
+    user_id = user["user_id"]
+    email = user.get("email", "")
+    is_test = user.get("is_test_identity", False)
+
+    if role in ("doctor", "physician", "clinician", "admin"):
         return {
-            "user_id": user_id or "dr_rajesh_sharma",
-            "name": "Dr. Rajesh Sharma, MD",
+            "user_id": user_id,
+            "name": email or "Authenticated Doctor",
             "role": "doctor",
-            "license": "TN-MC-84920",
-            "department": "Internal Medicine",
             "permissions": [
                 "consultations:read",
                 "consultations:write",
@@ -149,13 +165,14 @@ async def get_current_user_profile(
                 "summaries:amend",
                 "guidelines:cross_reference",
                 "guidelines:review"
-            ]
+            ],
+            "is_test_identity": is_test
         }
     return {
-        "user_id": user_id or "pt_ananya_patel",
-        "name": "Ananya Patel",
+        "user_id": user_id,
+        "name": email or "Authenticated Patient",
         "role": "patient",
-        "patient_id": "PT-89241",
+        "patient_id": user_id,
         "permissions": [
             "summaries:read_approved",
             "patient_portal:access",
@@ -163,7 +180,8 @@ async def get_current_user_profile(
             "recovery_plan:track",
             "chat:inquire",
             "voice:record"
-        ]
+        ],
+        "is_test_identity": is_test
     }
 
 
