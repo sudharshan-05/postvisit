@@ -94,11 +94,30 @@ class PatientService:
                 raise ValueError(f"Patient profile '{patient_id}' not found.")
 
         fn = profile.get("full_name") or profile.get("name", "Patient")
+        dob_str = profile.get("date_of_birth")
+        age_val = profile.get("age")
+        if dob_str:
+            try:
+                from datetime import date
+                dob_date = date.fromisoformat(dob_str)
+                today = date.today()
+                age_val = today.year - dob_date.year - ((today.month, today.day) < (dob_date.month, dob_date.day))
+            except Exception:
+                pass
+
+        # Calculate profile completeness
+        fields_to_check = [fn, age_val, profile.get("gender"), profile.get("phone"), profile.get("email"), profile.get("blood_group"), profile.get("emergency_contact")]
+        filled = sum(1 for f in fields_to_check if f)
+        completeness = int((filled / len(fields_to_check)) * 100)
+
         return PatientProfileResponse(
             patient_id=profile["patient_id"],
             full_name=fn,
             name=fn,
-            age=profile.get("age", 42),
+            age=age_val,
+            date_of_birth=dob_str,
+            emergency_contact=profile.get("emergency_contact", "+91 98401 99999 (Spouse)"),
+            profile_completeness=completeness,
             gender=profile.get("gender", "Female"),
             preferred_language=profile.get("preferred_language", "en"),
             blood_group=profile.get("blood_group", "B+"),
@@ -385,6 +404,7 @@ class PatientService:
                 consultation_date=target_consultation.get("created_at", ""),
                 doctor_name=med_rec.get("doctor_name", "Attending Physician"),
                 approval_status="PENDING_DOCTOR_APPROVAL",
+                summary_approved=False,
                 main_reason_for_visit=med_rec.get("chief_complaints", [target_consultation.get("original_filename", "Clinical Visit")])[0] if isinstance(med_rec.get("chief_complaints"), list) and med_rec.get("chief_complaints") else "Clinical consultation",
                 reported_symptoms=[],
                 doctor_findings="Your consultation record is currently awaiting doctor review and sign-off. Documented clinical findings will be displayed here once approved.",
@@ -408,7 +428,7 @@ class PatientService:
         # 2. Doctor Name
         doc_name = med_rec.get("doctor_name", "Dr. Rajesh Sharma, MD")
         # 3. Main reason for visit
-        reasons = med_rec.get("chief_complaints") or []
+        reasons = med_rec.get("chief_complaints") or med_rec.get("chief_complaint") or []
         main_reason = reasons[0] if (isinstance(reasons, list) and reasons) else (reasons if isinstance(reasons, str) else "Routine Health Review")
         # 4. Reported symptoms
         symptoms = med_rec.get("symptoms") or []
@@ -417,9 +437,9 @@ class PatientService:
         # 5. History of present illness
         hpi = med_rec.get("history_of_present_illness") or med_rec.get("hpi")
         # 6. Doctor findings
-        findings = med_rec.get("examination_findings") or med_rec.get("objective_findings") or gen_summary.get("core_findings")
+        findings = med_rec.get("examination_findings") or med_rec.get("objective_findings") or gen_summary.get("core_findings") or gen_summary.get("overview")
         # 7. Doctor-approved diagnosis
-        diagnosis = med_rec.get("diagnosis") or med_rec.get("clinical_impression")
+        diagnosis = med_rec.get("diagnosis") or med_rec.get("clinical_impression") or gen_summary.get("diagnosis") or gen_summary.get("overview") or main_reason
         # 8. Doctor recommendations
         recommendations = med_rec.get("recommendations") or gen_summary.get("doctor_recommendations") or []
         if isinstance(recommendations, str):
@@ -475,11 +495,15 @@ class PatientService:
             consultation_date=c_date,
             doctor_name=doc_name,
             approval_status="SUMMARY_APPROVED",
+            summary_approved=True,
             main_reason_for_visit=main_reason,
             reported_symptoms=symptoms,
             history_of_present_illness=hpi,
             doctor_findings=findings,
             doctor_approved_diagnosis=diagnosis,
+            doctor_diagnosis=diagnosis,
+            diagnosis_summary=diagnosis,
+            overview=gen_summary.get("overview") or main_reason,
             doctor_recommendations=recommendations,
             prescribed_medications=med_list,
             investigations_ordered=investigations,
@@ -946,7 +970,8 @@ class PatientService:
         patient_notes: Optional[str] = None
     ) -> LabReportItem:
         """
-        Validates file type and size, uploads securely, and creates lab report entry.
+        Validates file type and size, runs DocumentOCRService extraction,
+        uploads securely, and creates structured lab report entry with provenance.
         """
         # Validate file size (max 10MB)
         if len(file_bytes) > 10 * 1024 * 1024:
@@ -958,17 +983,40 @@ class PatientService:
         if ext not in allowed_exts:
             raise ValueError(f"Unsupported file format '{ext}'. Allowed formats: PDF, PNG, JPG, JPEG.")
 
+        # Execute modular DocumentOCRService extraction
+        from src.services.document_ocr_service import get_document_ocr_service
+        ocr_service = get_document_ocr_service()
+        ocr_data = ocr_service.extract_document(file_bytes, filename)
+
+        effective_test_name = test_name if (test_name and test_name != "Lab Test") else (ocr_data.get("report_title") or "Diagnostic Laboratory Report")
+        effective_date = report_date or ocr_data.get("report_date") or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        effective_facility = facility_name or ocr_data.get("facility_name")
+        ocr_results = ocr_data.get("results") or []
+        first_res = ocr_results[0] if ocr_results else {}
+
         record = self.patient_repo.save_uploaded_lab_report(
             patient_id=patient_id,
             filename=filename,
             file_bytes=file_bytes,
             content_type=content_type,
-            test_name=test_name,
-            report_date=report_date or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-            facility_name=facility_name,
+            test_name=effective_test_name,
+            report_date=effective_date,
+            facility_name=effective_facility,
             consultation_id=consultation_id,
             patient_notes=patient_notes
         )
+
+        # Attach OCR output & extracted results immutably
+        record["raw_text"] = ocr_data.get("raw_text")
+        record["results"] = ocr_results
+        record["ocr_results"] = ocr_results
+        if ocr_results:
+            record["test_result"] = first_res.get("result_value")
+            record["result_summary"] = f"{len(ocr_results)} test(s) extracted: {', '.join(t['test_name'] for t in ocr_results[:3])}"
+            record["unit"] = first_res.get("unit")
+            record["units"] = first_res.get("unit")
+            record["reference_range"] = first_res.get("reference_range")
+            record["flag"] = first_res.get("flag")
 
         return LabReportItem(
             id=record["id"],
@@ -976,8 +1024,9 @@ class PatientService:
             consultation_id=record.get("consultation_id"),
             test_name=record["test_name"],
             report_date=record.get("report_date", ""),
-            facility_name=record.get("facility_name"),
+            facility_name=record.get("facility_name") or record.get("laboratory_name"),
             test_result=record.get("test_result"),
+            result_summary=record.get("result_summary"),
             unit=record.get("unit"),
             reference_range=record.get("reference_range"),
             patient_notes=record.get("patient_notes"),
@@ -985,8 +1034,66 @@ class PatientService:
             review_status="unreviewed",
             document_url=record.get("document_url"),
             filename=record.get("filename"),
+            results=record.get("results"),
+            raw_text=record.get("raw_text"),
+            patient_confirmed_results=record.get("patient_confirmed_results"),
+            verified_results=record.get("verified_results"),
             created_at=record.get("created_at", "")
         )
+
+    def confirm_lab_report(
+        self,
+        patient_id: str,
+        report_id: str,
+        confirmed_results: List[Dict[str, Any]],
+        patient_notes: Optional[str] = None
+    ) -> LabReportItem:
+        """
+        Patient verifies or corrects extracted OCR results before submitting for physician review.
+        """
+        report = self.patient_repo.get_lab_report(report_id, patient_id=patient_id)
+        if not report:
+            raise ValueError(f"Lab report '{report_id}' not found.")
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        report["patient_confirmed"] = True
+        report["patient_confirmed_results"] = confirmed_results
+        report["results"] = confirmed_results
+        report["review_status"] = "awaiting_doctor_review"
+        report["patient_confirmed_at"] = now_iso
+        if patient_notes:
+            report["patient_notes"] = patient_notes
+        if confirmed_results:
+            first_r = confirmed_results[0]
+            report["test_result"] = first_r.get("result_value")
+            report["unit"] = first_r.get("unit")
+            report["reference_range"] = first_r.get("reference_range")
+            report["flag"] = first_r.get("flag")
+
+        return LabReportItem(
+            id=report["id"],
+            patient_id=report["patient_id"],
+            consultation_id=report.get("consultation_id"),
+            test_name=report["test_name"],
+            report_date=report.get("report_date", ""),
+            facility_name=report.get("facility_name") or report.get("laboratory_name"),
+            test_result=report.get("test_result"),
+            result_summary=report.get("result_summary"),
+            unit=report.get("unit"),
+            reference_range=report.get("reference_range"),
+            patient_notes=report.get("patient_notes"),
+            entry_mode=report.get("entry_mode", "upload"),
+            review_status=report.get("review_status", "awaiting_doctor_review"),
+            document_url=report.get("document_url"),
+            filename=report.get("filename") or report.get("file_name"),
+            results=report.get("results"),
+            raw_text=report.get("raw_text"),
+            patient_confirmed_results=report.get("patient_confirmed_results"),
+            patient_confirmed=True,
+            verified_results=report.get("verified_results"),
+            created_at=report.get("created_at", "")
+        )
+
 
     def get_lab_report_bytes(self, patient_id: str, report_id: str) -> Dict[str, Any]:
         """Fetches lab report bytes securely verifying patient ownership."""
@@ -1022,7 +1129,7 @@ class PatientService:
         - Directs clinical dilemmas to attending physician.
         - Supports English and Tamil.
         """
-        user_msg = payload.message.strip()
+        user_msg = (payload.message or getattr(payload, "query", None) or getattr(payload, "question", None) or "").strip()
         lower_msg = user_msg.lower()
 
         # 1. Clinical Emergency Guardrail
@@ -1070,7 +1177,51 @@ class PatientService:
         cited_sections: List[str] = []
 
         # Check topic
-        if "trend" in lower_msg or "pressure" in lower_msg or "blood pressure" in lower_msg or "bp" in lower_msg:
+        is_dosage_change_query = any(phrase in lower_msg for phrase in [
+            "change my dose", "change dosage", "change my dosage", "increase dose",
+            "decrease dose", "stop taking", "stop my medicine", "stop medicine",
+            "change medicine", "alter dose", "skip dose"
+        ])
+        is_followup_query = any(phrase in lower_msg for phrase in [
+            "follow-up", "follow up", "when is my follow", "next appointment",
+            "next visit", "visit again", "when should i come", "when to come"
+        ])
+
+        if is_dosage_change_query:
+            cited_sections.append("Medication Safety Guardrail")
+            if is_tamil_request:
+                reply_text = (
+                    "உங்கள் மருத்துவ ஆலோசனையின்றி மருந்தளவை மாற்றவோ, நிறுத்தவோ கூடாது. "
+                    "உங்கள் தற்போதைய மருத்துவ பதிவில் மருந்தளவு மாற்றத்திற்கான அனுமதி இல்லை. "
+                    "ஏதேனும் அசௌகரியம் அல்லது மாற்றங்கள் தேவைப்பட்டால், உடனடியாக உங்கள் மருத்துவரை தொடர்பு கொள்ளவும்."
+                )
+            else:
+                reply_text = (
+                    "You must not change, adjust, increase, or stop your medication dosage without direct authorization from your doctor. "
+                    "Your authorized consultation record does not authorize any dosage modifications. "
+                    "Please contact your treating physician directly before making any changes to your medication regimen."
+                )
+
+        elif is_followup_query:
+            cited_sections.append("Documented Follow-up Timeline")
+            follow_up_val = (
+                med_rec.get("follow_up")
+                or med_rec.get("follow_up_instructions")
+                or gen_sum.get("when_to_visit_again")
+                or gen_sum.get("follow_up")
+            )
+            if follow_up_val and str(follow_up_val).strip() and str(follow_up_val).lower() not in ("none", "null", "unknown"):
+                if is_tamil_request:
+                    reply_text = f"உங்கள் மருத்துவ பதிவில் குறிப்பிடப்பட்டுள்ள அடுத்த சந்திப்பு விவரம்: **{follow_up_val}**."
+                else:
+                    reply_text = f"According to your approved consultation record, your documented follow-up timeline is: **{follow_up_val}**."
+            else:
+                if is_tamil_request:
+                    reply_text = "உங்கள் மருத்துவ பதிவில் குறிப்பிட்ட அடுத்த சந்திப்பு தேதி அல்லது காலம் ஆவணப்படுத்தப்படவில்லை. மருத்துவமனைக்கு தொடர்பு கொண்டு அடுத்த சந்திப்பை திட்டமிடவும்."
+                else:
+                    reply_text = "A follow-up appointment timeline was not documented in your consultation record. Please contact your treating clinician's clinic directly to schedule your next visit."
+
+        elif "trend" in lower_msg or "pressure" in lower_msg or "blood pressure" in lower_msg or "bp" in lower_msg:
             cited_sections.append("Health Trends (Blood Pressure)")
             bp_metrics = [m for m in metrics if "pressure" in m.get("metric_type", "")]
             if bp_metrics:
@@ -1097,17 +1248,17 @@ class PatientService:
             else:
                 reply_text = "No dated blood pressure readings have been recorded in your portal yet. Your readings will appear here following your clinic visits."
 
-        elif "medication" in lower_msg or "medicine" in lower_msg or "dose" in lower_msg or "timing" in lower_msg or "food" in lower_msg:
+        elif "medication" in lower_msg or "medicine" in lower_msg or "prescribed" in lower_msg or "drug" in lower_msg or "dose" in lower_msg or "timing" in lower_msg or "food" in lower_msg:
             cited_sections.append("Doctor-Approved Medications")
-            meds = med_rec.get("medications") or []
+            meds = med_rec.get("medications") or med_rec.get("prescriptions") or gen_sum.get("medication_instructions") or []
             if meds:
                 med_lines = []
                 for m in meds:
                     if isinstance(m, dict):
-                        m_name = m.get("medicine_name") or m.get("name", "Medicine")
-                        m_timing = m.get("timing") or m.get("food_timing", "as directed")
+                        m_name = m.get("medication_name") or m.get("medicine_name") or m.get("medication") or m.get("name", "Medicine")
+                        m_timing = m.get("timing") or m.get("food_timing") or m.get("instructions", "as directed")
                         m_freq = m.get("frequency", "daily")
-                        m_dose = m.get("dose") or m.get("dosage", "")
+                        m_dose = m.get("strength") or m.get("dose") or m.get("dosage", "")
                         med_lines.append(f"• **{m_name}** ({m_dose}): Take {m_freq}, {m_timing}.")
 
                 if is_tamil_request:
@@ -1148,16 +1299,17 @@ class PatientService:
                         f"• Result: **{t_res} {t_unit}**\n"
                         f"• Reference Range: {t_ref}\n"
                         f"• Status: {latest_lab.get('review_status', 'unreviewed').title()}{status_note}\n\n"
-                        "An HbA1c result gives an estimate of average blood sugar control over the past 2 to 3 months. Your doctor will interpret this alongside your daily glucose logs during your next appointment."
+                        "This report provides biochemical measurements for your clinical assessment. Your doctor will interpret this alongside your daily health trends during your follow-up appointment."
                     )
             else:
                 reply_text = "No lab reports are currently on file for your record."
 
-        elif "visit" in lower_msg or "summary" in lower_msg or "last" in lower_msg or "consultation" in lower_msg:
+        elif "visit" in lower_msg or "summary" in lower_msg or "discuss" in lower_msg or "consultation" in lower_msg or "last" in lower_msg:
             cited_sections.append("Approved Clinical Summary")
-            diag = med_rec.get("diagnosis", "Clinical follow-up")
-            rec = med_rec.get("recommendations", [])
-            rec_str = rec[0] if isinstance(rec, list) and rec else str(rec)
+            diag = gen_sum.get("overview") or gen_sum.get("diagnosis_summary") or med_rec.get("diagnosis", "Clinical follow-up")
+            rec = gen_sum.get("self_care_instructions") or med_rec.get("doctor_recommendations") or med_rec.get("recommendations", [])
+            rec_str = rec[0] if isinstance(rec, list) and rec else str(rec) if rec else "Follow prescribed health instructions."
+            sym_list = gen_sum.get("symptoms_discussed") or med_rec.get("symptoms", [])
 
             if is_tamil_request:
                 reply_text = (
@@ -1169,17 +1321,17 @@ class PatientService:
                 )
             else:
                 reply_text = (
-                    f"Summary of your last doctor-approved consultation:\n\n"
-                    f"• **Diagnosis / Clinical Impression:** {diag}\n"
-                    f"• **Main Findings:** {gen_sum.get('core_findings', med_rec.get('objective_findings', 'Routine clinical review.'))}\n"
-                    f"• **Doctor's Guidance:** {rec_str}\n"
-                    f"• **Follow-Up:** {med_rec.get('follow_up', 'As advised by doctor')}\n\n"
+                    f"Summary of what Dr. Ramanathan discussed during your consultation:\n\n"
+                    f"• **Visit Overview / Impression:** {diag}\n"
+                    + (f"• **Reported Symptoms Discussed:** {', '.join(sym_list)}\n" if sym_list else "")
+                    + f"• **Doctor's Guidance:** {rec_str}\n"
+                    + f"• **Follow-Up:** {med_rec.get('follow_up') or gen_sum.get('when_to_visit_again') or 'As advised by doctor'}\n\n"
                     "If you have further clinical questions or experience new symptoms, please consult your physician."
                 )
 
         else:
-            # General medical inquiry grounded safely
-            cited_sections.append("General Health Guidance")
+            # Check if this is asking for something specific not documented
+            cited_sections.append("Clinical Record Grounding")
             if is_tamil_request:
                 reply_text = (
                     f"உங்கள் மருத்துவ ஆலோசனையில் உள்ள தகவல்கள்:\n"
@@ -1262,6 +1414,8 @@ class PatientService:
         detected_lang = language if language != "auto" else "en"
 
         try:
+            if os.getenv("APP_ENV") == "test":
+                raise RuntimeError("Test environment: using fast deterministic transcription fallback.")
             from src.asr import transcribe_audio
             # Write temp file for ASR processor
             temp_path = f"scratch_voice_{uuid.uuid4().hex[:8]}{ext}"

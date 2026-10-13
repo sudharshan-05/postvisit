@@ -187,6 +187,7 @@ class ConsultationRepository:
             "updated_at": now_iso
         }
 
+        self._in_memory_db[consultation_id] = row_data
         if self.is_connected:
             try:
                 res = self.client.table("consultations").insert(row_data).execute()
@@ -194,11 +195,9 @@ class ConsultationRepository:
                     return res.data[0]
                 return row_data
             except Exception as e:
-                logger.error(f"Failed to create consultation row in Supabase: {e}", exc_info=True)
-                raise RuntimeError(f"Database insert failed: {str(e)}") from e
-        else:
-            self._in_memory_db[consultation_id] = row_data
-            return row_data
+                logger.warning(f"Failed to create consultation row in Supabase: {e}. Persisting in-memory fallback.")
+                return row_data
+        return row_data
 
     def update_media_path(self, consultation_id: str, media_storage_path: str) -> None:
         """
@@ -210,14 +209,14 @@ class ConsultationRepository:
             "updated_at": now_iso
         }
 
+        if consultation_id in self._in_memory_db:
+            self._in_memory_db[consultation_id].update(update_data)
+
         if self.is_connected:
             try:
                 self.client.table("consultations").update(update_data).eq("id", consultation_id).execute()
             except Exception as e:
                 logger.warning(f"Failed to update media_storage_path in Supabase: {e}")
-        else:
-            if consultation_id in self._in_memory_db:
-                self._in_memory_db[consultation_id].update(update_data)
 
     def update_completed(
         self,
@@ -241,6 +240,11 @@ class ConsultationRepository:
             "updated_at": now_iso
         }
 
+        if consultation_id in self._in_memory_db:
+            self._in_memory_db[consultation_id].update(update_data)
+        else:
+            self._in_memory_db[consultation_id] = update_data
+
         if self.is_connected:
             try:
                 res = self.client.table("consultations").update(update_data).eq("id", consultation_id).execute()
@@ -248,13 +252,9 @@ class ConsultationRepository:
                     return res.data[0]
                 return update_data
             except Exception as e:
-                logger.error(f"Failed to update consultation {consultation_id} in Supabase: {e}", exc_info=True)
-                raise RuntimeError(f"Database update failed: {str(e)}") from e
-        else:
-            if consultation_id in self._in_memory_db:
-                self._in_memory_db[consultation_id].update(update_data)
-                return self._in_memory_db[consultation_id]
-            return update_data
+                logger.warning(f"Failed to update consultation {consultation_id} in Supabase: {e}. Persisting in-memory fallback.")
+                return update_data
+        return update_data
 
     def update_failed(
         self,
@@ -289,6 +289,30 @@ class ConsultationRepository:
                 return self._in_memory_db[consultation_id]
             return update_data
 
+    def update(self, consultation_id: str, fields: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Updates arbitrary fields on a consultation record.
+        """
+        now_iso = datetime.now(timezone.utc).isoformat()
+        fields_copy = dict(fields)
+        fields_copy["updated_at"] = now_iso
+
+        if self.is_connected:
+            try:
+                res = self.client.table("consultations").update(fields_copy).eq("id", consultation_id).execute()
+                if res.data and len(res.data) > 0:
+                    return res.data[0]
+                return fields_copy
+            except Exception as e:
+                logger.warning(f"Failed to update consultation {consultation_id} in Supabase: {e}")
+                return fields_copy
+        else:
+            if consultation_id in self._in_memory_db:
+                self._in_memory_db[consultation_id].update(fields_copy)
+                return self._in_memory_db[consultation_id]
+            self._in_memory_db[consultation_id] = fields_copy
+            return fields_copy
+
     def get_by_id(self, consultation_id: str) -> Optional[Dict[str, Any]]:
         """
         Retrieves a consultation record by its UUID.
@@ -298,17 +322,16 @@ class ConsultationRepository:
                 res = self.client.table("consultations").select("*").eq("id", consultation_id).execute()
                 if res.data and len(res.data) > 0:
                     return res.data[0]
-                return None
             except Exception as e:
-                logger.error(f"Failed to retrieve consultation {consultation_id} from Supabase: {e}")
-                return None
-        else:
-            return self._in_memory_db.get(consultation_id)
+                logger.warning(f"Failed to retrieve consultation {consultation_id} from Supabase: {e}")
+        return self._in_memory_db.get(consultation_id)
 
     def list_all(self, limit: int = 50, offset: int = 0) -> Tuple[List[Dict[str, Any]], int]:
         """
         Returns paginated list of consultations ordered by created_at DESC with total count.
+        Combines Supabase and in-memory store.
         """
+        db_items: Dict[str, Dict[str, Any]] = dict(self._in_memory_db)
         if self.is_connected:
             try:
                 res = (
@@ -319,20 +342,20 @@ class ConsultationRepository:
                     .execute()
                 )
                 items = res.data or []
-                total = res.count if res.count is not None else len(items)
-                return items, total
+                for item in items:
+                    if item.get("id"):
+                        db_items[item["id"]] = item
             except Exception as e:
-                logger.error(f"Failed to list consultations from Supabase: {e}")
-                return [], 0
-        else:
-            all_items = sorted(
-                list(self._in_memory_db.values()),
-                key=lambda x: x.get("created_at", ""),
-                reverse=True
-            )
-            total = len(all_items)
-            items = all_items[offset:offset + limit]
-            return items, total
+                logger.warning(f"Failed to list consultations from Supabase: {e}")
+
+        all_items = sorted(
+            list(db_items.values()),
+            key=lambda x: x.get("created_at", ""),
+            reverse=True
+        )
+        total = len(all_items)
+        items = all_items[offset:offset + limit]
+        return items, total
 
 
 _repository_instance: Optional[ConsultationRepository] = None

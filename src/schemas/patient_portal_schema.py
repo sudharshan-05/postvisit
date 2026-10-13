@@ -22,6 +22,9 @@ class PatientProfileResponse(BaseModel):
     email: Optional[str] = Field(default=None, description="Contact email")
     preferred_language: Optional[str] = Field(default="en", description="Preferred language")
     blood_group: Optional[str] = Field(default=None, description="Blood type")
+    date_of_birth: Optional[str] = Field(default=None, description="Date of birth in YYYY-MM-DD format")
+    emergency_contact: Optional[str] = Field(default=None, description="Designated emergency contact phone/name")
+    profile_completeness: Optional[int] = Field(default=None, description="Profile completeness percentage 0-100")
     allergies: List[str] = Field(default_factory=list, description="Known patient allergies")
     chronic_conditions: List[str] = Field(default_factory=list, description="Documented chronic conditions")
     created_at: Optional[str] = None
@@ -94,6 +97,8 @@ class LastVisitSummaryResponse(BaseModel):
     doctor_findings: Optional[str] = None
     doctor_approved_diagnosis: Optional[str] = None
     doctor_diagnosis: Optional[str] = None
+    diagnosis_summary: Optional[str] = None
+    overview: Optional[str] = None
     doctor_recommendations: List[str] = Field(default_factory=list)
     prescribed_medications: List[Any] = Field(default_factory=list)
     investigations_ordered: List[str] = Field(default_factory=list)
@@ -104,6 +109,7 @@ class LastVisitSummaryResponse(BaseModel):
     follow_up_date: Optional[str] = None
     outstanding_uncertainties: List[str] = Field(default_factory=list)
     approval_status: str = Field(description="'SUMMARY_APPROVED' or 'PENDING_DOCTOR_APPROVAL'")
+    summary_approved: bool = False
     reviewed_at: Optional[str] = None
     contextual_questions: List[str] = Field(default_factory=list)
 
@@ -244,7 +250,28 @@ class LabReportItem(BaseModel):
     filename: Optional[str] = None
     file_name: Optional[str] = None
     file_type: Optional[str] = None
+    results: Optional[List[Dict[str, Any]]] = None
+    raw_text: Optional[str] = None
+    patient_confirmed_results: Optional[List[Dict[str, Any]]] = None
+    patient_confirmed: Optional[bool] = None
+    verified_results: Optional[List[Dict[str, Any]]] = None
     created_at: Optional[str] = None
+
+
+class LabReportConfirmRequest(BaseModel):
+    confirmed_results: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    corrected_results: Optional[List[Dict[str, Any]]] = None
+    patient_confirmed: Optional[bool] = True
+    patient_notes: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_results(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            res = data.get("confirmed_results") or data.get("corrected_results") or []
+            data["confirmed_results"] = res
+        return data
+
 
 
 class LabReportListResponse(BaseModel):
@@ -259,6 +286,7 @@ class LabReportListResponse(BaseModel):
 class PatientChatRequest(BaseModel):
     message: Optional[str] = Field(default=None, max_length=2000)
     question: Optional[str] = Field(default=None, max_length=2000)
+    query: Optional[str] = Field(default=None, max_length=2000)
     patient_id: Optional[str] = None
     context_type: str = Field(
         default="general",
@@ -273,7 +301,7 @@ class PatientChatRequest(BaseModel):
     @classmethod
     def populate_message(cls, data: Any) -> Any:
         if isinstance(data, dict):
-            msg = data.get("message") or data.get("question")
+            msg = data.get("message") or data.get("question") or data.get("query")
             if msg is not None:
                 data["message"] = str(msg).strip()
         return data

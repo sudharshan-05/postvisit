@@ -107,7 +107,7 @@ async def process_consultation(
             content={
                 "error": {
                     "code": "UNSUPPORTED_FILE_TYPE",
-                    "message": "Unsupported file type. Supported formats: WAV, MP3, MP4, M4A, FLAC, OGG."
+                    "message": "Unsupported file type. Supported formats: WAV, MP3, MP4, M4A, FLAC, OGG, WEBM, AAC."
                 }
             }
         )
@@ -358,3 +358,34 @@ async def list_consultations(
     consultation_service: ConsultationService = Depends(get_consultation_service)
 ):
     return consultation_service.list_consultations(limit=limit, offset=offset)
+
+
+@router.put(
+    "/{consultation_id}/transcript",
+    status_code=status.HTTP_200_OK,
+    summary="Update Consultation Transcript"
+)
+async def update_transcript_route(
+    consultation_id: str,
+    payload: dict,
+    consultation_service: ConsultationService = Depends(get_consultation_service)
+):
+    repo = consultation_service.repository
+    c = repo.get_by_id(consultation_id)
+    if not c:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"error": {"code": "NOT_FOUND", "message": f"Consultation '{consultation_id}' not found."}}
+        )
+    from datetime import datetime, timezone
+    updates = {
+        "is_transcript_edited": True,
+        "transcript_edited_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if "transcript" in payload:
+        updates["transcript"] = payload["transcript"]
+    if "diarized_transcript" in payload:
+        updates["diarized_transcript"] = payload["diarized_transcript"]
+    repo.update(consultation_id, updates)
+    return {"consultation_id": consultation_id, "status": "updated", "is_transcript_edited": True}
+

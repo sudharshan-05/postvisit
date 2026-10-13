@@ -28,7 +28,9 @@ class Settings:
         ".mp4",
         ".m4a",
         ".flac",
-        ".ogg"
+        ".ogg",
+        ".webm",
+        ".aac"
     }
 
     # LLM configuration

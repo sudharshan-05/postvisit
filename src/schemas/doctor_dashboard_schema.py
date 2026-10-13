@@ -11,7 +11,7 @@ Defines models for:
 - Append-only clinical audit trail
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 
@@ -75,7 +75,7 @@ class PreviousVisitSummary(BaseModel):
     doctor_recommendations: List[str] = Field(default_factory=list)
     medications: List[Dict[str, Any]] = Field(default_factory=list)
     tests: List[str] = Field(default_factory=list)
-    follow_up: Optional[str] = None
+    follow_up: Optional[Union[str, Dict[str, Any]]] = None
     approved_summary: Optional[str] = None
 
 
@@ -337,3 +337,28 @@ class ClinicalAuditTrailItem(BaseModel):
     timestamp: str
     action_description: str
     details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class DoctorTranscriptUpdateRequest(BaseModel):
+    transcript: Optional[str] = None
+    diarized_transcript: Optional[List[Dict[str, Any]]] = None
+    notes: Optional[str] = None
+
+
+class DoctorConsultationVitalsRequest(BaseModel):
+    height: Optional[str] = None
+    weight: Optional[str] = None
+    pulse: Optional[str] = None
+    blood_pressure: Optional[str] = None
+    temperature: Optional[str] = None
+    oxygen_saturation: Optional[str] = None
+    fasting_glucose: Optional[str] = None
+    measured_at: Optional[str] = None
+    measurement_source: Optional[str] = Field(default="clinician_entry")
+
+
+class DoctorLabReportFullReviewRequest(BaseModel):
+    decision: str = "reviewed"
+    doctor_notes: Optional[str] = None
+    verified_results: Optional[List[Dict[str, Any]]] = None
+    clarification_request: Optional[str] = None

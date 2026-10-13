@@ -40,6 +40,8 @@ from src.schemas.doctor_dashboard_schema import (
     DoctorVoiceConfirmRequest,
     DoctorVoiceConfirmResponse,
     ConsultationTimelineResponse,
+    DoctorTranscriptUpdateRequest,
+    DoctorConsultationVitalsRequest,
 )
 
 logger = logging.getLogger("postvisit.routes.doctor")
@@ -459,4 +461,63 @@ async def doctor_ask_ai_alias(
         auth=auth,
         doctor_service=doctor_service
     )
+
+
+# -----------------------------------------------------------------------------
+# 10. Transcript Correction & Vitals Entry
+# -----------------------------------------------------------------------------
+@router.put(
+    "/consultations/{consultation_id}/transcript",
+    status_code=status.HTTP_200_OK,
+    summary="Update Consultation Transcript"
+)
+async def update_consultation_transcript_endpoint(
+    consultation_id: str = Path(...),
+    payload: DoctorTranscriptUpdateRequest = ...,
+    auth: Dict[str, str] = Depends(get_doctor_identity),
+    doctor_service: DoctorService = Depends(get_doctor_service)
+):
+    """
+    Saves doctor transcript corrections and marks the transcript as clinically confirmed/edited.
+    """
+    try:
+        return doctor_service.update_transcript(
+            consultation_id=consultation_id,
+            doctor_id=auth["caller_id"],
+            doctor_name=auth.get("doctor_name", "Dr. A. Ramanathan"),
+            req=payload
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+
+
+@router.put(
+    "/consultations/{consultation_id}/vitals",
+    status_code=status.HTTP_200_OK,
+    summary="Record or Update Current-Visit Vitals"
+)
+@router.post(
+    "/consultations/{consultation_id}/vitals",
+    status_code=status.HTTP_200_OK,
+    summary="Record Current-Visit Vitals"
+)
+async def update_consultation_vitals_endpoint(
+    consultation_id: str = Path(...),
+    payload: DoctorConsultationVitalsRequest = ...,
+    auth: Dict[str, str] = Depends(get_doctor_identity),
+    doctor_service: DoctorService = Depends(get_doctor_service)
+):
+    """
+    Records clinician measurements (BP, pulse, height, weight, SpO2, temp) with provenance.
+    """
+    try:
+        return doctor_service.update_vitals(
+            consultation_id=consultation_id,
+            doctor_id=auth["caller_id"],
+            doctor_name=auth.get("doctor_name", "Dr. A. Ramanathan"),
+            req=payload
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+
 

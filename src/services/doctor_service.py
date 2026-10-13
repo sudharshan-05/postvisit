@@ -43,6 +43,9 @@ from src.schemas.doctor_dashboard_schema import (
     ConsultationTimelineStep,
     ConsultationTimelineResponse,
     ClinicalAuditTrailItem,
+    DoctorTranscriptUpdateRequest,
+    DoctorConsultationVitalsRequest,
+    DoctorLabReportFullReviewRequest,
 )
 
 logger = logging.getLogger("postvisit.services.doctor")
@@ -318,6 +321,13 @@ class DoctorService:
             formatted_recs = [r.get("recommendation", str(r)) if isinstance(r, dict) else str(r) for r in raw_recs]
             raw_syms = med.get("symptoms", [])
             formatted_syms = [s.get("symptom", str(s)) if isinstance(s, dict) else str(s) for s in raw_syms]
+            raw_fu = med.get("follow_up")
+            if isinstance(raw_fu, dict):
+                fu_text = ", ".join(f"{k}: {v}" for k, v in raw_fu.items() if v) or None
+            elif raw_fu:
+                fu_text = str(raw_fu)
+            else:
+                fu_text = None
 
             visit_summary = PreviousVisitSummary(
                 consultation_id=cid,
@@ -329,7 +339,7 @@ class DoctorService:
                 doctor_recommendations=formatted_recs,
                 medications=med.get("medications", []),
                 tests=formatted_tests,
-                follow_up=med.get("follow_up"),
+                follow_up=fu_text,
                 approved_summary=approved_sum_text
             )
             visit_history.append(visit_summary)
@@ -1005,6 +1015,115 @@ class DoctorService:
         events = [e for e in self._audit_events if e.get("consultation_id") in (consultation_id, "seed-consultation-01")]
         events.sort(key=lambda x: x.get("timestamp", ""), reverse=False)
         return events
+
+    # =========================================================================
+    # 10. Transcript Correction & Confirmation
+    # =========================================================================
+
+    def update_transcript(
+        self,
+        consultation_id: str,
+        doctor_id: str,
+        doctor_name: str,
+        req: DoctorTranscriptUpdateRequest
+    ) -> Dict[str, Any]:
+        """
+        Updates consultation transcript with doctor corrections.
+        Preserves original transcript in audit details and sets is_transcript_edited=True.
+        """
+        c = self.consultation_repo.get_by_id(consultation_id)
+        if not c:
+            raise ValueError(f"Consultation '{consultation_id}' not found.")
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        updates: Dict[str, Any] = {
+            "is_transcript_edited": True,
+            "transcript_edited_at": now_iso,
+            "transcript_editor": doctor_name
+        }
+        if req.transcript is not None:
+            updates["transcript"] = req.transcript
+        if req.diarized_transcript is not None:
+            updates["diarized_transcript"] = req.diarized_transcript
+
+        self.consultation_repo.update(consultation_id, updates)
+
+        self.record_audit_event(
+            consultation_id=consultation_id,
+            event_type="transcript_corrected",
+            actor_id=doctor_id,
+            actor_role="doctor",
+            action_description=f"Consultation transcript corrected and confirmed by {doctor_name}.",
+            details={"notes": req.notes, "edited_at": now_iso}
+        )
+        return {
+            "consultation_id": consultation_id,
+            "status": "updated",
+            "is_transcript_edited": True,
+            "updated_at": now_iso
+        }
+
+    # =========================================================================
+    # 11. Current-Visit Vitals Entry & Provenance
+    # =========================================================================
+
+    def update_vitals(
+        self,
+        consultation_id: str,
+        doctor_id: str,
+        doctor_name: str,
+        req: DoctorConsultationVitalsRequest
+    ) -> Dict[str, Any]:
+        """
+        Records or updates current-visit vital signs with clinical provenance.
+        Never populates fake values.
+        """
+        c = self.consultation_repo.get_by_id(consultation_id)
+        if not c:
+            raise ValueError(f"Consultation '{consultation_id}' not found.")
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        med_rec = dict(c.get("medical_record") or {})
+        vitals = dict(med_rec.get("vital_signs") or med_rec.get("vitals") or {})
+
+        if req.height is not None and req.height != "":
+            vitals["height"] = req.height
+        if req.weight is not None and req.weight != "":
+            vitals["weight"] = req.weight
+            vitals["weight_kg"] = req.weight.replace("kg", "").strip()
+        if req.pulse is not None and req.pulse != "":
+            vitals["pulse"] = req.pulse.replace("bpm", "").strip()
+        if req.blood_pressure is not None and req.blood_pressure != "":
+            vitals["blood_pressure"] = req.blood_pressure
+        if req.temperature is not None and req.temperature != "":
+            vitals["temperature"] = req.temperature
+        if req.oxygen_saturation is not None and req.oxygen_saturation != "":
+            vitals["oxygen_saturation"] = req.oxygen_saturation.replace("%", "").strip()
+        if req.fasting_glucose is not None and req.fasting_glucose != "":
+            vitals["fasting_glucose"] = req.fasting_glucose.replace("mg/dL", "").strip()
+
+        vitals["measured_at"] = req.measured_at or now_iso
+        vitals["measurement_source"] = req.measurement_source or "clinician_entry"
+        vitals["recorded_by"] = doctor_name
+
+        med_rec["vital_signs"] = vitals
+        med_rec["vitals"] = vitals
+
+        self.consultation_repo.update(consultation_id, {"medical_record": med_rec})
+
+        self.record_audit_event(
+            consultation_id=consultation_id,
+            event_type="vitals_recorded",
+            actor_id=doctor_id,
+            actor_role="doctor",
+            action_description=f"Current-visit vital signs recorded by {doctor_name}.",
+            details={"vitals": vitals, "source": vitals["measurement_source"]}
+        )
+        return {
+            "consultation_id": consultation_id,
+            "vital_signs": vitals,
+            "status": "recorded"
+        }
 
 
 _doctor_service: Optional[DoctorService] = None

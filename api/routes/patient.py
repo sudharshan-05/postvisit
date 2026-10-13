@@ -47,7 +47,8 @@ from src.schemas.patient_portal_schema import (
     PatientChatRequest,
     PatientChatResponse,
     ChatMessageItem,
-    PatientVoiceTranscribeResponse
+    PatientVoiceTranscribeResponse,
+    LabReportConfirmRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -123,6 +124,11 @@ async def get_health_overview_endpoint(
     response_model=LastVisitSummaryResponse,
     summary="Get Last Visit Summary",
     description="Displays the 14-section patient-friendly clinical summary of the latest doctor-approved consultation."
+)
+@router.get(
+    "/visits/last",
+    response_model=LastVisitSummaryResponse,
+    include_in_schema=False
 )
 async def get_last_visit_summary_endpoint(
     consultation_id: Optional[str] = Query(default=None, description="Specific consultation UUID"),
@@ -262,7 +268,7 @@ async def create_manual_lab_report_endpoint(
 )
 async def upload_lab_report_endpoint(
     file: UploadFile = File(..., description="PDF or Image lab document"),
-    test_name: str = Form(..., description="Name of test e.g. HbA1c, Lipid Profile"),
+    test_name: Optional[str] = Form(default="Diagnostic Lab Report", description="Name of test e.g. HbA1c, Lipid Profile"),
     report_date: Optional[str] = Form(default=None, description="Date on report YYYY-MM-DD"),
     facility_name: Optional[str] = Form(default=None, description="Laboratory name"),
     consultation_id: Optional[str] = Form(default=None, description="Linked consultation UUID"),
@@ -309,6 +315,32 @@ async def download_lab_report_endpoint(
             content=file_bytes,
             media_type=res["content_type"],
             headers={"Content-Disposition": f'attachment; filename="{res["filename"]}"'}
+        )
+    except PermissionError as pe:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+
+
+@router.post(
+    "/lab-reports/{report_id}/confirm",
+    response_model=LabReportItem,
+    summary="Confirm Extracted Lab Report Results",
+    description="Patient confirms or corrects extracted test results before submitting for clinician review."
+)
+async def confirm_lab_report_endpoint(
+    report_id: str = Path(..., description="Lab report UUID"),
+    payload: LabReportConfirmRequest = ...,
+    auth: Dict[str, str] = Depends(get_patient_identity),
+    service: PatientService = Depends(get_patient_service)
+):
+    pid = auth["caller_id"]
+    try:
+        return service.confirm_lab_report(
+            patient_id=pid,
+            report_id=report_id,
+            confirmed_results=payload.confirmed_results,
+            patient_notes=payload.patient_notes
         )
     except PermissionError as pe:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))

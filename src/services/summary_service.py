@@ -207,10 +207,45 @@ class SummaryService:
             notes=f"Guardrail passed={guardrail_result.passed}. Status={initial_status}."
         )
 
-        logger.info(
-            f"Patient summary created [id={record['id']}, status={initial_status}, lang={target_language}]"
-        )
-        return record
+        return self._format_summary(record)
+
+    def _format_summary(self, summary: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        if not summary:
+            return summary
+        formatted = dict(summary)
+        effective = dict(formatted.get("reviewed_summary") or formatted.get("generated_summary") or {})
+        
+        # Populate compatible aliases so both frontend schema flavors work seamlessly
+        if "overview" in effective and "diagnosis_summary" not in effective:
+            effective["diagnosis_summary"] = effective["overview"]
+        if "diagnosis_summary" in effective and "overview" not in effective:
+            effective["overview"] = effective["diagnosis_summary"]
+            
+        if "self_care_instructions" in effective and "doctor_instructions" not in effective:
+            effective["doctor_instructions"] = effective["self_care_instructions"]
+        if "doctor_instructions" in effective and "self_care_instructions" not in effective:
+            effective["self_care_instructions"] = effective["doctor_instructions"]
+            
+        if "symptoms_discussed" in effective and "symptoms_explained" not in effective:
+            effective["symptoms_explained"] = effective["symptoms_discussed"]
+        if "warnings_and_precautions" in effective and "precautions" not in effective:
+            effective["precautions"] = effective["warnings_and_precautions"]
+        if "when_to_visit_again" in effective and "follow_up" not in effective:
+            effective["follow_up"] = effective["when_to_visit_again"]
+        if "medications" in effective and "medications_list" not in effective:
+            effective["medications_list"] = [
+                {
+                    "name": m.get("medication_name") or m.get("name") or "Medication",
+                    "dosage": m.get("strength") or m.get("dose") or m.get("dosage") or "",
+                    "instructions": m.get("instructions") or "",
+                    "timing": m.get("timing") or ""
+                }
+                for m in effective.get("medications", []) if isinstance(m, dict)
+            ]
+
+        formatted["summary_content"] = effective
+        formatted["doctor_reviewed"] = (formatted.get("status") == "SUMMARY_APPROVED")
+        return formatted
 
     def review_summary(
         self,
@@ -234,8 +269,21 @@ class SummaryService:
         # If amended, validate corrected_summary schema
         valid_corrected = None
         if corrected_summary is not None:
+            # Normalize fields to match PatientSummaryContent if aliases provided
+            normalized = dict(corrected_summary)
+            if "overview" not in normalized and "diagnosis_summary" in normalized:
+                normalized["overview"] = normalized["diagnosis_summary"]
+            if "self_care_instructions" not in normalized and "doctor_instructions" in normalized:
+                normalized["self_care_instructions"] = normalized["doctor_instructions"]
+            if "when_to_visit_again" not in normalized and "follow_up" in normalized:
+                normalized["when_to_visit_again"] = normalized["follow_up"]
+            if "warnings_and_precautions" not in normalized and "precautions" in normalized:
+                normalized["warnings_and_precautions"] = normalized["precautions"]
+            if "symptoms_discussed" not in normalized and "symptoms_explained" in normalized:
+                normalized["symptoms_discussed"] = normalized["symptoms_explained"]
+
             try:
-                valid_corrected = PatientSummaryContent(**corrected_summary).model_dump()
+                valid_corrected = PatientSummaryContent(**normalized).model_dump()
             except Exception as ve:
                 raise ValueError(f"Corrected summary does not match valid schema: {ve}")
 
@@ -250,7 +298,7 @@ class SummaryService:
         if not updated:
             raise RuntimeError("Failed to persist doctor review for summary.")
 
-        return updated
+        return self._format_summary(updated)
 
     def get_summary(
         self,
@@ -274,7 +322,7 @@ class SummaryService:
                 )
                 raise PermissionError("Summary is pending physician approval and cannot be viewed by the patient.")
 
-        return summary
+        return self._format_summary(summary)
 
     def list_summaries_for_consultation(
         self,
@@ -288,11 +336,12 @@ class SummaryService:
         Patients only receive doctor-approved summaries.
         """
         approved_only = (caller_role == "patient")
-        return self.summary_repo.list_summaries_for_consultation(
+        raw_list = self.summary_repo.list_summaries_for_consultation(
             consultation_id=consultation_id,
             language=language,
             approved_only=approved_only
         )
+        return [self._format_summary(s) for s in raw_list]
 
     def get_summary_history(
         self,

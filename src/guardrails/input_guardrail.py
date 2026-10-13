@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional, Set
 from src.guardrails.base import GuardrailResult
 
-ALLOWED_EXTENSIONS: Set[str] = {".mp3", ".mp4", ".wav", ".m4a", ".flac", ".ogg"}
+ALLOWED_EXTENSIONS: Set[str] = {".mp3", ".mp4", ".wav", ".m4a", ".flac", ".ogg", ".webm", ".aac"}
 DEFAULT_MAX_SIZE_MB = 100
 
 
